@@ -23,29 +23,26 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
 #include <vte/vte.h>
 
 GtkWidget *window, *terminal;
 
-static void do_title_changed(void)
+static void
+set_font_size(int delta)
 {
-	gtk_window_set_title(GTK_WINDOW(window),
-	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:"vbeterm");
-}
+	PangoFontDescription *descr;
+	descr = pango_font_description_copy(vte_terminal_get_font(VTE_TERMINAL(terminal)));
+	if (!descr) return;
 
-int
-main(int argc, char *argv[])
-{
+	gint current = pango_font_description_get_size(descr);
+	printf("%d\n", current);
+	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
+	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
+	pango_font_description_free(descr);
+
+	/* Set geo hints */
 	GdkGeometry geo_hints;
-
-	/* Initialise GTK and the widgets */
-	gtk_init(&argc, &argv);
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	terminal = vte_terminal_new();
-	gtk_window_set_title(GTK_WINDOW(window), "vbeterm");
-
-	/* Set geo hint because this is a terminal */
 	geo_hints.base_width = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
 	geo_hints.base_height = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
 	geo_hints.min_width = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
@@ -54,6 +51,51 @@ main(int argc, char *argv[])
 	geo_hints.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
 	gtk_window_set_geometry_hints(GTK_WINDOW(window), terminal, &geo_hints,
 	    GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE | GDK_HINT_BASE_SIZE);
+}
+
+static gboolean
+on_char_size_changed(GtkWidget *terminal, guint width, guint height, gpointer user_data)
+{
+	set_font_size(0);
+	return TRUE;
+}
+
+static gboolean
+on_title_changed(GtkWidget *terminal, gpointer user_data)
+{
+	gtk_window_set_title(GTK_WINDOW(window),
+	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:"vbeterm");
+	return TRUE;
+}
+
+static gboolean
+on_key_press(GtkWidget *terminal, GdkEventKey *event)
+{
+	if (event->state & GDK_CONTROL_MASK) {
+		switch (event->keyval) {
+		case GDK_plus:
+			set_font_size(1);
+			return TRUE;
+		case GDK_minus:
+			set_font_size(-1);
+			return TRUE;
+		case GDK_equal:
+			set_font_size(0);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+int
+main(int argc, char *argv[])
+{
+	/* Initialise GTK and the widgets */
+	gtk_init(&argc, &argv);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	terminal = vte_terminal_new();
+	gtk_window_set_title(GTK_WINDOW(window), "vbeterm");
 
 	/* Start a new shell */
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
@@ -69,7 +111,9 @@ main(int argc, char *argv[])
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
 	g_signal_connect(terminal, "child-exited", gtk_main_quit, NULL);
-	g_signal_connect(terminal, "window-title-changed", do_title_changed, NULL);
+	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), NULL);
+	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
+	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 
 	/* Configure terminal */
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
@@ -115,6 +159,7 @@ main(int argc, char *argv[])
 	    TRUE);
 	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
 	    VBETERM_FONT);
+	set_font_size(0);
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
