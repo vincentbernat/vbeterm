@@ -36,7 +36,6 @@ set_font_size(int delta)
 	if (!descr) return;
 
 	gint current = pango_font_description_get_size(descr);
-	printf("%d\n", current);
 	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
 	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
 	pango_font_description_free(descr);
@@ -51,6 +50,15 @@ set_font_size(int delta)
 	geo_hints.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
 	gtk_window_set_geometry_hints(GTK_WINDOW(window), terminal, &geo_hints,
 	    GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE | GDK_HINT_BASE_SIZE);
+}
+
+static gboolean
+on_dpi_changed(GtkSettings *settings,
+    GParamSpec *pspec,
+    gpointer user_data)
+{
+	set_font_size(0);
+	return TRUE;
 }
 
 static gboolean
@@ -114,6 +122,8 @@ main(int argc, char *argv[])
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), NULL);
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
+	g_signal_connect(gtk_settings_get_default(), "notify::gtk-xft-dpi",
+	    G_CALLBACK(on_dpi_changed), NULL);
 
 	/* Configure terminal */
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
