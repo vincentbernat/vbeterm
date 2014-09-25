@@ -104,17 +104,10 @@ main(int argc, char *argv[])
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), "vbeterm");
-
-	/* Start a new shell */
-	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
-	    VTE_PTY_DEFAULT,
-	    NULL,		/* working directory */
-	    (char *[]){ g_strdup(g_getenv("SHELL")), 0 },
-	    NULL,		/* envv */
-	    0,			/* spawn flags */
-	    NULL, NULL,		/* child setup */
-	    NULL,		/* child pid */
-	    NULL);
+	gtk_container_add(GTK_CONTAINER(window), terminal);
+	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
+	gtk_widget_show_all(window);
+	gtk_window_set_focus(GTK_WINDOW(window), terminal);
 
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
@@ -182,10 +175,18 @@ main(int argc, char *argv[])
 	vte_terminal_set_visible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
 
+	/* Start a new shell */
+	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
+	    VTE_PTY_DEFAULT,
+	    NULL,		/* working directory */
+	    (char *[]){ g_strdup(g_getenv("SHELL")), 0 },
+	    NULL,		/* envv */
+	    0,			/* spawn flags */
+	    NULL, NULL,		/* child setup */
+	    NULL,		/* child pid */
+	    NULL);
+
 	/* Pack widgets and start the terminal */
-	gtk_container_add(GTK_CONTAINER(window), terminal);
-	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
-	gtk_widget_show_all(window);
-	gtk_window_set_focus(GTK_WINDOW(window), terminal);
 	gtk_main();
+	return FALSE;
 }
