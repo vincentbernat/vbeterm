@@ -101,6 +101,8 @@ main(int argc, char *argv[])
 	    }, 16);
 	vte_terminal_set_color_cursor_rgba(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0x007700, 1));
+	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
+	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
 	    TRUE);
 
