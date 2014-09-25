@@ -105,6 +105,8 @@ main(int argc, char *argv[])
 	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
 	    TRUE);
+	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
+	    VBETERM_FONT);
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
