@@ -130,29 +130,35 @@ main(int argc, char *argv[])
 #define CLR_R(x)   (((x) & 0xff0000) >> 16)
 #define CLR_G(x)   (((x) & 0x00ff00) >>  8)
 #define CLR_B(x)   (((x) & 0x0000ff) >>  0)
-#define CLR_GDK(x, a) (const GdkRGBA){ CLR_R(x)/255., CLR_G(x)/255., CLR_B(x)/255., a }
-	vte_terminal_set_colors_rgba(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0xffffff, 1),
-	    &CLR_GDK(0, VBETERM_OPACITY),
-	    (const GdkRGBA[]){	CLR_GDK(0x111111, 1),
-			CLR_GDK(0xd36265, 1),
-			CLR_GDK(0xaece91, 1),
-			CLR_GDK(0xe7e18c, 1),
-			CLR_GDK(0x5297cf, 1),
-			CLR_GDK(0x963c59, 1),
-			CLR_GDK(0x5E7175, 1),
-			CLR_GDK(0xbebebe, 1),
-			CLR_GDK(0x666666, 1),
-			CLR_GDK(0xef8171, 1),
-			CLR_GDK(0xcfefb3, 1),
-			CLR_GDK(0xfff796, 1),
-			CLR_GDK(0x74b8ef, 1),
-			CLR_GDK(0xb85e7b, 1),
-			CLR_GDK(0xA3BABF, 1),
-			CLR_GDK(0xffffff, 1)
-	    }, 16);
-	vte_terminal_set_color_cursor_rgba(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0x007700, 1));
+#define CLR_16(x)  (((x) << 8) | (x))
+#define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
+	vte_terminal_set_colors(VTE_TERMINAL(terminal),
+	    &CLR_GDK(0xffffff),
+	    &CLR_GDK(0),
+	    (const GdkColor[]){	CLR_GDK(0x111111),
+			CLR_GDK(0xd36265),
+			CLR_GDK(0xaece91),
+			CLR_GDK(0xe7e18c),
+			CLR_GDK(0x5297cf),
+			CLR_GDK(0x963c59),
+			CLR_GDK(0x5E7175),
+			CLR_GDK(0xbebebe),
+			CLR_GDK(0x666666),
+			CLR_GDK(0xef8171),
+			CLR_GDK(0xcfefb3),
+			CLR_GDK(0xfff796),
+			CLR_GDK(0x74b8ef),
+			CLR_GDK(0xb85e7b),
+			CLR_GDK(0xA3BABF),
+			CLR_GDK(0xffffff)
+ 	    }, 16);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
+	    VBETERM_OPACITY * 65535);
+#pragma GCC diagnostic pop
+	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
+	    &CLR_GDK(0x008800));
 	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
 	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
