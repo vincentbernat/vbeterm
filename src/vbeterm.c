@@ -99,8 +99,11 @@ main(int argc, char *argv[])
 			CLR_GDK(0xA3BABF),
 			CLR_GDK(0xffffff)
 	    }, 16);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
-	    (1 - VBETERM_SATURATION_LEVEL) * 65535);
+	    VBETERM_OPACITY * 65535);
+#pragma GCC diagnostic pop
 
 	/* Pack widgets and start the terminal */
 	gtk_container_add(GTK_CONTAINER(window), terminal);
