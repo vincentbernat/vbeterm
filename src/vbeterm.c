@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
 	    VBETERM_WORD_CHARS);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal),
-	    VBETERM_SCROLLBACK_LINES);
+	    0);
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),
 	    FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
