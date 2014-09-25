@@ -26,10 +26,17 @@
 #include <gdk/gdkkeysyms.h>
 #include <vte/vte.h>
 
+GtkWidget *window, *terminal;
+
+static void do_title_changed(void)
+{
+	gtk_window_set_title(GTK_WINDOW(window),
+	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:"vbeterm");
+}
+
 int
 main(int argc, char *argv[])
 {
-	GtkWidget *window, *terminal;
 	GdkGeometry geo_hints;
 
 	/* Initialise GTK and the widgets */
@@ -62,6 +69,7 @@ main(int argc, char *argv[])
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
 	g_signal_connect(terminal, "child-exited", gtk_main_quit, NULL);
+	g_signal_connect(terminal, "window-title-changed", do_title_changed, NULL);
 
 	/* Configure terminal */
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
