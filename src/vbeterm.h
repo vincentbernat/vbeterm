@@ -24,5 +24,6 @@
 
 #define VBETERM_SCROLLBACK_LINES 5000
 #define VBETERM_WORD_CHARS "-A-Za-z0-9:./?%&#_=+@~"
+#define VBETERM_SATURATION_LEVEL 0.15
 
 #endif

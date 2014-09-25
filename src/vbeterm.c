@@ -67,8 +67,41 @@ main(int argc, char *argv[])
 	    VBETERM_WORD_CHARS);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal),
 	    VBETERM_SCROLLBACK_LINES);
+	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),
+	    FALSE);
+	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
+	    TRUE);
 
-	// Pack widgets and start the terminal
+#define CLR_R(x)   (((x) & 0xff0000) >> 16)
+#define CLR_G(x)   (((x) & 0x00ff00) >>  8)
+#define CLR_B(x)   (((x) & 0x0000ff) >>  0)
+#define CLR_16(x)  (((x) << 8) | (x))
+#define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
+
+	vte_terminal_set_colors(VTE_TERMINAL(terminal),
+	    &CLR_GDK(0xffffff),
+	    &CLR_GDK(0),
+	    (const GdkColor[]){	CLR_GDK(0x111111),
+			CLR_GDK(0xd36265),
+			CLR_GDK(0xaece91),
+			CLR_GDK(0xe7e18c),
+			CLR_GDK(0x5297cf),
+			CLR_GDK(0x963c59),
+			CLR_GDK(0x5E7175),
+			CLR_GDK(0xbebebe),
+			CLR_GDK(0x666666),
+			CLR_GDK(0xef8171),
+			CLR_GDK(0xcfefb3),
+			CLR_GDK(0xfff796),
+			CLR_GDK(0x74b8ef),
+			CLR_GDK(0xb85e7b),
+			CLR_GDK(0xA3BABF),
+			CLR_GDK(0xffffff)
+	    }, 16);
+	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
+	    (1 - VBETERM_SATURATION_LEVEL) * 65535);
+
+	/* Pack widgets and start the terminal */
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	gtk_widget_show_all(window);
 	gtk_main();
