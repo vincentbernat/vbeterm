@@ -168,6 +168,10 @@ main(int argc, char *argv[])
 
 	/* Pack widgets and start the terminal */
 	gtk_container_add(GTK_CONTAINER(window), terminal);
+	gtk_widget_set_app_paintable(window, TRUE);
+	GdkScreen *screen = gtk_widget_get_screen(window);
+	GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+	gtk_widget_set_visual(window, visual);
 	gtk_widget_show_all(window);
 	gtk_main();
 }
