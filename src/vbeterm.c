@@ -49,14 +49,15 @@ main(int argc, char *argv[])
 	    GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE | GDK_HINT_BASE_SIZE);
 
 	/* Start a new shell */
-	vte_terminal_fork_command(VTE_TERMINAL (terminal),
-	    NULL,		/* binary to run (NULL=user's shell) */
-	    NULL,		/* arguments */
-	    NULL,		/* environment */
-	    NULL,		/* dir to start (NULL=CWD) */
-	    FALSE,		/* log session to lastlog */
-	    FALSE,		/* log session to utmp/utmpx log */
-	    FALSE);		/* log session to wtmp/wtmpx log */
+	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
+	    VTE_PTY_DEFAULT,
+	    NULL,		/* working directory */
+	    (char *[]){ g_strdup(g_getenv("SHELL")), 0 },
+	    NULL,		/* envv */
+	    0,			/* spawn flags */
+	    NULL, NULL,		/* child setup */
+	    NULL,		/* child pid */
+	    NULL);
 
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
