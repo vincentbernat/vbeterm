@@ -72,13 +72,14 @@ main(int argc, char *argv[])
 	    FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
 	    TRUE);
+	vte_terminal_set_rewrap_on_resize(VTE_TERMINAL(terminal),
+	    TRUE);
 
 #define CLR_R(x)   (((x) & 0xff0000) >> 16)
 #define CLR_G(x)   (((x) & 0x00ff00) >>  8)
 #define CLR_B(x)   (((x) & 0x0000ff) >>  0)
 #define CLR_16(x)  (((x) << 8) | (x))
 #define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
-
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0xffffff),
 	    &CLR_GDK(0),
@@ -104,6 +105,15 @@ main(int argc, char *argv[])
 	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
 	    VBETERM_OPACITY * 65535);
 #pragma GCC diagnostic pop
+	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
+	    &CLR_GDK(0x007700));
+	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
+	    TRUE);
+
+	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
+	    FALSE);
+	vte_terminal_set_visible_bell(VTE_TERMINAL(terminal),
+	    FALSE);
 
 	/* Pack widgets and start the terminal */
 	gtk_container_add(GTK_CONTAINER(window), terminal);
