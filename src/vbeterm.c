@@ -95,6 +95,31 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 	return FALSE;
 }
 
+static gchar**
+get_child_environment(void)
+{
+	guint n;
+	gchar **env, **result, **p;
+	const gchar *value;
+
+	/* Copy the current environment */
+	env = g_listenv();
+	n = g_strv_length (env);
+	result = g_new (gchar *, n + 1);
+	for (n = 0, p = env; *p != NULL; ++p) {
+		if (strcmp(*p, "COLORTERM") == 0) continue;
+		value = g_getenv (*p);
+		if (G_LIKELY(value != NULL))
+			result[n++] = g_strconcat (*p, "=", value, NULL);
+	}
+	g_strfreev(env);
+
+	/* Setup COLORTERM */
+	result[n++] = g_strdup_printf("COLORTERM=%s", PACKAGE_NAME);
+	result[n] = NULL;
+	return result;
+}
+
 
 int
 main(int argc, char *argv[])
@@ -176,15 +201,18 @@ main(int argc, char *argv[])
 	    FALSE);
 
 	/* Start a new shell */
+	gchar **env;
+	env = get_child_environment();
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
 	    NULL,		/* working directory */
 	    (char *[]){ g_strdup(g_getenv("SHELL")), 0 },
-	    NULL,		/* envv */
+	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
 	    NULL,		/* child pid */
 	    NULL);
+	g_strfreev(env);
 
 	/* Pack widgets and start the terminal */
 	gtk_main();
