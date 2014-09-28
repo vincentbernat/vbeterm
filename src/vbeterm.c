@@ -104,7 +104,7 @@ get_child_environment(void)
 	/* Copy the current environment */
 	env = g_listenv();
 	n = g_strv_length (env);
-	result = g_new (gchar *, n + 1);
+	result = g_new (gchar *, n + 2);
 	for (n = 0, p = env; *p != NULL; ++p) {
 		if (g_strcmp0(*p, "COLORTERM") == 0) continue;
 		value = g_getenv (*p);
