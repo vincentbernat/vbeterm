@@ -22,14 +22,13 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
-#include <gdk/gdkkeysyms-compat.h>
 #include <vte/vte.h>
+#include <gdk/gdkkeysyms-compat.h>
 
 GtkWidget *window, *terminal;
 
 static void
-set_font_size(int delta)
+set_font_size(gint delta)
 {
 	PangoFontDescription *descr;
 	descr = pango_font_description_copy(vte_terminal_get_font(VTE_TERMINAL(terminal)));
@@ -107,7 +106,7 @@ get_child_environment(void)
 	n = g_strv_length (env);
 	result = g_new (gchar *, n + 1);
 	for (n = 0, p = env; *p != NULL; ++p) {
-		if (strcmp(*p, "COLORTERM") == 0) continue;
+		if (g_strcmp0(*p, "COLORTERM") == 0) continue;
 		value = g_getenv (*p);
 		if (G_LIKELY(value != NULL))
 			result[n++] = g_strconcat (*p, "=", value, NULL);
@@ -206,7 +205,7 @@ main(int argc, char *argv[])
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
 	    NULL,		/* working directory */
-	    (char *[]){ g_strdup(g_getenv("SHELL")), 0 },
+	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
