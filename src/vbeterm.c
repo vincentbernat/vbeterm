@@ -1,7 +1,4 @@
 /* -*- mode: c; c-file-style: "openbsd" -*- */
-/* TODO:5002 You may want to change the copyright of all files. This is the
- * TODO:5002 ISC license. Choose another one if you want.
- */
 /*
  * Copyright (c) 2014 Vincent Bernat <bernat@luffy.cx>
  *
