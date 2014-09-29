@@ -15,7 +15,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "vbeterm.h"
+#include "term.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -68,7 +68,7 @@ static gboolean
 on_title_changed(GtkWidget *terminal, gpointer user_data)
 {
 	gtk_window_set_title(GTK_WINDOW(window),
-	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:"vbeterm");
+	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:PACKAGE_NAME);
 	return TRUE;
 }
 
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	terminal = vte_terminal_new();
-	gtk_window_set_title(GTK_WINDOW(window), "vbeterm");
+	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
 	gtk_widget_show_all(window);
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 
 	/* Configure terminal */
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
-	    VBETERM_WORD_CHARS);
+	    TERM_WORD_CHARS);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal),
 	    0);
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),
@@ -179,7 +179,7 @@ main(int argc, char *argv[])
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
-	    VBETERM_OPACITY * 65535);
+	    TERM_OPACITY * 65535);
 #pragma GCC diagnostic pop
 	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0x008800));
@@ -188,7 +188,7 @@ main(int argc, char *argv[])
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
 	    TRUE);
 	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
-	    VBETERM_FONT);
+	    TERM_FONT);
 	set_font_size(0);
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),

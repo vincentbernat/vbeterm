@@ -4,7 +4,7 @@ AC_PREREQ([2.64])
 AC_INIT([vbeterm],
         [m4_esyscmd_s([./get-version])],
         [bernat@luffy.cx])
-AC_CONFIG_SRCDIR([src/vbeterm.c])
+AC_CONFIG_SRCDIR([src/term.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_MACRO_DIR([m4])

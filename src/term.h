@@ -22,8 +22,8 @@
 #  include <config.h>
 #endif
 
-#define VBETERM_WORD_CHARS "-A-Za-z0-9:./?%&#_=+@~"
-#define VBETERM_OPACITY 0.85
-#define VBETERM_FONT "DejaVu Sans Mono for Powerline 9"
+#define TERM_WORD_CHARS "-A-Za-z0-9:./?%&#_=+@~"
+#define TERM_OPACITY 0.85
+#define TERM_FONT "DejaVu Sans Mono for Powerline 9"
 
 #endif

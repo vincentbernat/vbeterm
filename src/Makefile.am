@@ -1,5 +1,5 @@
-bin_PROGRAMS = vbeterm
+bin_PROGRAMS = term
 
-vbeterm_SOURCES  = vbeterm.h vbeterm.c
-vbeterm_CFLAGS   = @GTK_CFLAGS@ @VTE_CFLAGS@
-vbeterm_LDFLAGS  = @GTK_LIBS@   @VTE_LIBS@
+term_SOURCES  = term.h term.c
+term_CFLAGS   = @GTK_CFLAGS@ @VTE_CFLAGS@
+term_LDFLAGS  = @GTK_LIBS@   @VTE_LIBS@
