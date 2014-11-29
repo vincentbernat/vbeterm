@@ -24,6 +24,6 @@
 
 #define TERM_WORD_CHARS "-A-Za-z0-9:./?%&#_=+@~"
 #define TERM_OPACITY 0.85
-#define TERM_FONT "DejaVu Sans Mono for Powerline 9"
+#define TERM_FONT "DejaVu Sans Mono for Powerline 10"
 
 #endif
