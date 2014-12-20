@@ -38,6 +38,10 @@ set_font_size(gint delta)
 
 	/* Set geo hints */
 	GdkGeometry geo_hints;
+	geo_hints.base_width = vte_terminal_get_column_count(VTE_TERMINAL(terminal)) *
+	    vte_terminal_get_char_width(VTE_TERMINAL(terminal));
+	geo_hints.base_height = vte_terminal_get_row_count(VTE_TERMINAL(terminal)) *
+	    vte_terminal_get_char_height(VTE_TERMINAL(terminal));
 	geo_hints.min_width = 10 * vte_terminal_get_char_width(VTE_TERMINAL(terminal));
 	geo_hints.min_height = 3 * vte_terminal_get_char_height(VTE_TERMINAL(terminal));
 	geo_hints.width_inc = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
