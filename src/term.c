@@ -36,18 +36,24 @@ set_font_size(gint delta)
 	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
 	pango_font_description_free(descr);
 
-	/* Set geo hints */
-	GdkGeometry geo_hints;
-	geo_hints.base_width = vte_terminal_get_column_count(VTE_TERMINAL(terminal)) *
-	    vte_terminal_get_char_width(VTE_TERMINAL(terminal));
-	geo_hints.base_height = vte_terminal_get_row_count(VTE_TERMINAL(terminal)) *
-	    vte_terminal_get_char_height(VTE_TERMINAL(terminal));
-	geo_hints.min_width = 10 * vte_terminal_get_char_width(VTE_TERMINAL(terminal));
-	geo_hints.min_height = 3 * vte_terminal_get_char_height(VTE_TERMINAL(terminal));
-	geo_hints.width_inc = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
-	geo_hints.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
-	gtk_window_set_geometry_hints(GTK_WINDOW(window), terminal, &geo_hints,
-	    GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE);
+	GtkBorder padding;
+	gtk_style_context_get_padding(gtk_widget_get_style_context(terminal),
+	    gtk_widget_get_state_flags(terminal),
+	    &padding);
+
+	GdkGeometry hints;
+        hints.base_width  = padding.left + padding.right;
+        hints.base_height = padding.top  + padding.bottom;
+        hints.width_inc   = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
+        hints.height_inc  = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
+        hints.min_width   = hints.base_width  + hints.width_inc  * 10;
+        hints.min_height  = hints.base_height + hints.height_inc * 3;
+	gtk_window_set_geometry_hints(GTK_WINDOW(window),
+	    terminal,
+	    &hints,
+	    GDK_HINT_RESIZE_INC |
+	    GDK_HINT_MIN_SIZE |
+	    GDK_HINT_BASE_SIZE);
 }
 
 static gboolean
