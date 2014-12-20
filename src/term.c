@@ -22,27 +22,7 @@
 #include <vte/vte.h>
 #include <gdk/gdkkeysyms-compat.h>
 
-static GtkWidget *window, *terminal;
-static gboolean is_fullscreen = FALSE;
-
-static void
-set_geo_hints(void)
-{
-	GdkGeometry geo_hints;
-	geo_hints.base_width = 0;
-	geo_hints.base_height = 0;
-	if (is_fullscreen) {
-		gtk_window_set_geometry_hints(GTK_WINDOW(window), window, &geo_hints,
-		    GDK_HINT_BASE_SIZE);
-	} else {
-		geo_hints.min_width = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
-		geo_hints.min_height = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
-		geo_hints.width_inc = vte_terminal_get_char_width(VTE_TERMINAL(terminal));
-		geo_hints.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(terminal));
-		gtk_window_set_geometry_hints(GTK_WINDOW(window), window, &geo_hints,
-		    GDK_HINT_RESIZE_INC | GDK_HINT_BASE_SIZE | GDK_HINT_MIN_SIZE);
-	}
-}
+GtkWidget *window, *terminal;
 
 static void
 set_font_size(gint delta)
@@ -55,8 +35,6 @@ set_font_size(gint delta)
 	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
 	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
 	pango_font_description_free(descr);
-
-	set_geo_hints();
 }
 
 static gboolean
@@ -65,7 +43,7 @@ on_dpi_changed(GtkSettings *settings,
     gpointer user_data)
 {
 	set_font_size(0);
-	return FALSE;
+	return TRUE;
 }
 
 static gboolean
@@ -73,15 +51,6 @@ on_char_size_changed(GtkWidget *terminal, guint width, guint height, gpointer us
 {
 	set_font_size(0);
 	return TRUE;
-}
-
-static gboolean
-on_window_state_event(GtkWidget *window, GdkEvent *event, gpointer user_data)
-{
-	is_fullscreen = !!(((GdkEventWindowState *)event)->new_window_state &
-	    GDK_WINDOW_STATE_FULLSCREEN);
-	set_geo_hints();
-	return FALSE;
 }
 
 static gboolean
@@ -152,7 +121,6 @@ main(int argc, char *argv[])
 
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
-	g_signal_connect(window, "window-state-event", G_CALLBACK(on_window_state_event), NULL);
 	g_signal_connect(terminal, "child-exited", gtk_main_quit, NULL);
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), NULL);
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
