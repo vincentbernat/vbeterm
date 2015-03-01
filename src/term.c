@@ -19,10 +19,17 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 #include <vte/vte.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms-compat.h>
+#include <glib.h>
+#include <getopt.h>
 
 GtkWidget *window, *terminal;
+TermConfig config;
+gchar *cmd = NULL;
 
 static void
 set_font_size(gint delta)
@@ -35,6 +42,160 @@ set_font_size(gint delta)
 	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
 	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
 	pango_font_description_free(descr);
+}
+
+static gboolean
+term_config_load_theme(GKeyFile *kf, gchar *grp, TermTheme *theme)
+{
+    gsize len;
+    gsize i;
+    gchar *val;
+    gchar **lval;
+
+    theme->opacity = g_key_file_get_double(kf, grp, "Opacity", NULL);
+    theme->bold = g_key_file_get_boolean(kf, grp, "Bold", NULL);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+    if ((val = g_key_file_get_string(kf, grp, "Cursor", NULL)) == NULL)
+        return FALSE;
+    gdk_color_parse(val, &theme->cursor);
+    g_free(val);
+
+    if ((val = g_key_file_get_string(kf, grp, "Font", NULL)) == NULL)
+        return FALSE;
+    g_strlcpy(theme->font, val, sizeof(theme->font));
+    g_free(val);
+
+    if ((val = g_key_file_get_string(kf, grp, "Foreground", NULL)) == NULL)
+        return FALSE;
+    gdk_color_parse(val, &theme->fg);
+    g_free(val);
+
+    if ((val = g_key_file_get_string(kf, grp, "Background", NULL)) == NULL)
+        return FALSE;
+    gdk_color_parse(val, &theme->bg);
+    g_free(val);
+
+    if ((lval = g_key_file_get_string_list(kf, grp, "Palette",
+                                           &len, NULL)) == NULL)
+        return FALSE;
+
+    theme->palette_size = len;
+    if (len > TERM_THEME_PALETTE_MAX) {
+        g_free(lval);
+        return FALSE;
+    }
+
+    for (i = 0; i < theme->palette_size; i++) {
+        gdk_color_parse(lval[i], &theme->palette[i]);
+    }
+    g_free(lval);
+
+#pragma GCC diagnostic pop
+    return TRUE;
+}
+
+static void
+term_config_load(void)
+{
+    gchar *path;
+    GKeyFile *key_file;
+    gboolean ret;
+    gchar *start_group;
+    gchar *val;
+    gchar **lval;
+    gsize list_len;
+    gsize i;
+
+    key_file = g_key_file_new();
+    path = g_strdup_printf("%s/%s", g_getenv("HOME")?:"", TERM_CONFIG_PATH);
+    ret = g_key_file_load_from_file(key_file,
+                                    path,
+                                    G_KEY_FILE_NONE,
+                                    NULL);
+    g_free(path);
+
+    if (!ret) {
+        /*
+         * provide some sensible defaults
+         */
+        g_key_file_load_from_data(key_file, TERM_CONFIG_DEFAULT,
+                                  strlen(TERM_CONFIG_DEFAULT),
+                                  G_KEY_FILE_NONE,
+                                  NULL);
+    }
+
+    start_group = g_key_file_get_start_group(key_file);
+
+    if ((val = g_key_file_get_string(key_file, start_group,
+                                     "WordChars", NULL)) == NULL) {
+        g_strlcpy(config.word_chars, TERM_WORD_CHARS,
+                  sizeof(config.word_chars));
+    } else {
+        g_strlcpy(config.word_chars, val, sizeof(config.word_chars));
+    }
+
+    if ((lval = g_key_file_get_string_list(key_file, start_group, "Themes",
+                                          &list_len, NULL)) == NULL ||
+        list_len <= 0) {
+        config.theme_count = 0;
+        return;
+    } else {
+        for (i = 0; i < list_len; i++) {
+            TermTheme *theme;
+
+            theme = &config.themes[config.theme_count];
+            if (term_config_load_theme(key_file, lval[i], theme))
+                config.theme_count++;
+            else
+                bzero(theme, sizeof(*theme));
+        }
+    }
+}
+
+void
+term_theme_apply(gint index)
+{
+    TermTheme *theme = &config.themes[index];
+
+    if (index >= config.theme_count)
+        return;
+
+	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal), 0);
+	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),  FALSE);
+	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal), TRUE);
+	vte_terminal_set_rewrap_on_resize(VTE_TERMINAL(terminal), TRUE);
+
+	vte_terminal_set_colors(VTE_TERMINAL(terminal), &theme->fg, &theme->bg,
+                            theme->palette, theme->palette_size);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	vte_terminal_set_opacity(VTE_TERMINAL(terminal), theme->opacity * 65535);
+#pragma GCC diagnostic pop
+
+	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal), &theme->cursor);
+	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
+	    VTE_CURSOR_BLINK_OFF);
+	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal), theme->bold);
+	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal), theme->font);
+	set_font_size(0);
+
+	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal), FALSE);
+	vte_terminal_set_visible_bell(VTE_TERMINAL(terminal), FALSE);
+}
+
+void
+term_theme_cycle()
+{
+    gint next_theme = (config.theme_index + 1) % config.theme_count;
+
+    if (config.theme_count <= 0)
+        return;
+    term_theme_apply(next_theme);
+    config.theme_index = next_theme;
 }
 
 static gboolean
@@ -75,6 +236,9 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 		case GDK_equal:
 			set_font_size(0);
 			return TRUE;
+        case GDK_percent:
+            term_theme_cycle();
+            return TRUE;
 		}
 	}
 	return FALSE;
@@ -105,12 +269,24 @@ get_child_environment(void)
 	return result;
 }
 
-
 int
 main(int argc, char *argv[])
 {
+    int c;
+
+    while ((c = getopt(argc, argv, "e:")) != -1) {
+        switch (c) {
+        case 'e':
+            cmd = g_strdup(optarg);
+            break;
+        }
+    }
 	/* Initialise GTK and the widgets */
 	gtk_init(&argc, &argv);
+
+    /* load configuration */
+    bzero(&config, sizeof(config));
+    term_config_load();
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
@@ -129,69 +305,23 @@ main(int argc, char *argv[])
 	    G_CALLBACK(on_dpi_changed), NULL);
 
 	/* Configure terminal */
-	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
-	    TERM_WORD_CHARS);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal),
-	    0);
-	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),
-	    FALSE);
-	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
-	    TRUE);
-	vte_terminal_set_rewrap_on_resize(VTE_TERMINAL(terminal),
-	    TRUE);
+	vte_terminal_set_word_chars(VTE_TERMINAL(terminal), config.word_chars);
+    term_theme_apply(0);
 
-#define CLR_R(x)   (((x) & 0xff0000) >> 16)
-#define CLR_G(x)   (((x) & 0x00ff00) >>  8)
-#define CLR_B(x)   (((x) & 0x0000ff) >>  0)
-#define CLR_16(x)  (((x) << 8) | (x))
-#define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
-	vte_terminal_set_colors(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0xffffff),
-	    &CLR_GDK(0),
-	    (const GdkColor[]){	CLR_GDK(0x111111),
-			CLR_GDK(0xd36265),
-			CLR_GDK(0xaece91),
-			CLR_GDK(0xe7e18c),
-			CLR_GDK(0x5297cf),
-			CLR_GDK(0x963c59),
-			CLR_GDK(0x5E7175),
-			CLR_GDK(0xbebebe),
-			CLR_GDK(0x666666),
-			CLR_GDK(0xef8171),
-			CLR_GDK(0xcfefb3),
-			CLR_GDK(0xfff796),
-			CLR_GDK(0x74b8ef),
-			CLR_GDK(0xb85e7b),
-			CLR_GDK(0xA3BABF),
-			CLR_GDK(0xffffff)
- 	    }, 16);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
-	    TERM_OPACITY * 65535);
-#pragma GCC diagnostic pop
-	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0x008800));
-	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
-	    VTE_CURSOR_BLINK_OFF);
-	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
-	    TRUE);
-	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
-	    TERM_FONT);
-	set_font_size(0);
-
-	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
-	    FALSE);
-	vte_terminal_set_visible_bell(VTE_TERMINAL(terminal),
-	    FALSE);
 
 	/* Start a new shell */
 	gchar **env;
+    gchar **fork_cmd;
 	env = get_child_environment();
+    if (cmd) {
+        fork_cmd = (gchar *[]){ "/bin/sh", "-c", cmd, NULL };
+    } else {
+        fork_cmd = (gchar *[]){ g_strdup(g_getenv("SHELL")), NULL };
+    }
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
 	    NULL,		/* working directory */
-	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
+        fork_cmd,
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */

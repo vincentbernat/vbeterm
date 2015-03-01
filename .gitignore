@@ -5,6 +5,17 @@
 *.la
 /build*/
 
+/ChangeLog
+/Makefile
+/config.h
+/config.log
+/config.status
+/libltdl/
+/libtool
+/src/.deps/
+/src/Makefile
+/src/term
+stamp-h1
 # autotools stuff
 /m4/lt*.m4
 /m4/libtool.m4
