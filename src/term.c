@@ -76,7 +76,8 @@ term_config_load_theme(GKeyFile *kf, gchar *grp, TermTheme *theme)
     gdk_color_parse(val, &theme->bg);
     g_free(val);
 
-    if ((lval = g_key_file_get_string_list(kf, grp, "Palette", &len, NULL)) == NULL)
+    if ((lval = g_key_file_get_string_list(kf, grp, "Palette",
+                                           &len, NULL)) == NULL)
         return FALSE;
 
     theme->palette_size = len;
@@ -109,7 +110,7 @@ term_config_load(void)
     key_file = g_key_file_new();
     path = g_strdup_printf("%s/%s", getenv("HOME")?:"", TERM_CONFIG_PATH);
     ret = g_key_file_load_from_file(key_file,
-                                    "/home/pyr/.config/vbeterm/vbeterm.conf",
+                                    path,
                                     G_KEY_FILE_NONE,
                                     NULL);
     g_free(path);
@@ -126,7 +127,8 @@ term_config_load(void)
 
     start_group = g_key_file_get_start_group(key_file);
 
-    if ((val = g_key_file_get_string(key_file, start_group, "WordChars", NULL)) == NULL) {
+    if ((val = g_key_file_get_string(key_file, start_group,
+                                     "WordChars", NULL)) == NULL) {
         g_strlcpy(config.word_chars, TERM_WORD_CHARS, sizeof(config.word_chars));
     } else {
         g_strlcpy(config.word_chars, val, sizeof(config.word_chars));
@@ -135,36 +137,8 @@ term_config_load(void)
     if ((lval = g_key_file_get_string_list(key_file, start_group, "Themes",
                                           &list_len, NULL)) == NULL ||
         list_len <= 0) {
-        config.theme_count = 1;
-        config.theme_index = 0;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        gdk_color_parse("#838394949696", &config.themes[0].fg);
-        gdk_color_parse("#00002b2b3636", &config.themes[0].bg);
-        gdk_color_parse("#0f0f49499999", &config.themes[0].cursor);
-        gdk_color_parse("#070736364242", &config.themes[0].palette[0]);
-        gdk_color_parse("#dcdc32322f2f", &config.themes[0].palette[1]);
-        gdk_color_parse("#858599990000", &config.themes[0].palette[2]);
-        gdk_color_parse("#b5b589890000", &config.themes[0].palette[3]);
-        gdk_color_parse("#26268b8bd2d2", &config.themes[0].palette[4]);
-        gdk_color_parse("#d3d336368282", &config.themes[0].palette[5]);
-        gdk_color_parse("#2a2aa1a19898", &config.themes[0].palette[6]);
-        gdk_color_parse("#eeeee8e8d5d5", &config.themes[0].palette[7]);
-        gdk_color_parse("#00002b2b3636", &config.themes[0].palette[8]);
-        gdk_color_parse("#cbcb4b4b1616", &config.themes[0].palette[9]);
-        gdk_color_parse("#58586e6e7575", &config.themes[0].palette[10]);
-        gdk_color_parse("#65657b7b8383", &config.themes[0].palette[11]);
-        gdk_color_parse("#838394949696", &config.themes[0].palette[12]);
-        gdk_color_parse("#6c6c7171c4c4", &config.themes[0].palette[13]);
-        gdk_color_parse("#9393a1a1a1a1", &config.themes[0].palette[14]);
-        gdk_color_parse("#fdfdf6f6e3e3", &config.themes[0].palette[15]);
-#pragma GCC diagnostic pop
-
-        config.themes[0].bold = FALSE;
-        config.themes[0].opacity = 1.0;
-        g_strlcpy(config.themes[0].font, "Terminus 12",
-                  sizeof(config.themes[0].font));
+        config.theme_count = 0;
+        return;
     } else {
         for (i = 0; i < list_len; i++) {
             TermTheme *theme;
@@ -182,6 +156,9 @@ void
 term_theme_apply(gint index)
 {
     TermTheme *theme = &config.themes[index];
+
+    if (index >= config.theme_count)
+        return;
 
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal), 0);
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(terminal),  FALSE);
