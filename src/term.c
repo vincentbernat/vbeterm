@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <vte/vte.h>
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms-compat.h>
 
 GtkWidget *window, *terminal;
@@ -109,6 +110,10 @@ get_child_environment(void)
 int
 main(int argc, char *argv[])
 {
+    GdkColor fg;
+    GdkColor bg;
+    GdkColor palette[16];
+
 	/* Initialise GTK and the widgets */
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -145,26 +150,32 @@ main(int argc, char *argv[])
 #define CLR_B(x)   (((x) & 0x0000ff) >>  0)
 #define CLR_16(x)  (((x) << 8) | (x))
 #define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    gdk_color_parse("#838394949696", &fg);
+    gdk_color_parse("#00002b2b3636", &bg);
+    gdk_color_parse("#070736364242", &palette[0]);
+    gdk_color_parse("#dcdc32322f2f", &palette[1]);
+    gdk_color_parse("#858599990000", &palette[2]);
+    gdk_color_parse("#b5b589890000", &palette[3]);
+    gdk_color_parse("#26268b8bd2d2", &palette[4]);
+    gdk_color_parse("#d3d336368282", &palette[5]);
+    gdk_color_parse("#2a2aa1a19898", &palette[6]);
+    gdk_color_parse("#eeeee8e8d5d5", &palette[7]);
+    gdk_color_parse("#00002b2b3636", &palette[8]);
+    gdk_color_parse("#cbcb4b4b1616", &palette[9]);
+    gdk_color_parse("#58586e6e7575", &palette[10]);
+    gdk_color_parse("#65657b7b8383", &palette[11]);
+    gdk_color_parse("#838394949696", &palette[12]);
+    gdk_color_parse("#6c6c7171c4c4", &palette[13]);
+    gdk_color_parse("#9393a1a1a1a1", &palette[14]);
+    gdk_color_parse("#fdfdf6f6e3e3", &palette[15]);
+#pragma GCC diagnostic pop
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0xffffff),
-	    &CLR_GDK(0),
-	    (const GdkColor[]){	CLR_GDK(0x111111),
-			CLR_GDK(0xd36265),
-			CLR_GDK(0xaece91),
-			CLR_GDK(0xe7e18c),
-			CLR_GDK(0x5297cf),
-			CLR_GDK(0x963c59),
-			CLR_GDK(0x5E7175),
-			CLR_GDK(0xbebebe),
-			CLR_GDK(0x666666),
-			CLR_GDK(0xef8171),
-			CLR_GDK(0xcfefb3),
-			CLR_GDK(0xfff796),
-			CLR_GDK(0x74b8ef),
-			CLR_GDK(0xb85e7b),
-			CLR_GDK(0xA3BABF),
-			CLR_GDK(0xffffff)
- 	    }, 16);
+        &fg,
+        &bg,
+        palette,
+        16);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
@@ -175,7 +186,7 @@ main(int argc, char *argv[])
 	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
 	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
-	    TRUE);
+	    FALSE);
 	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
 	    TERM_FONT);
 	set_font_size(0);
