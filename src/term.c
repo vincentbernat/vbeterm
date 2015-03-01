@@ -25,9 +25,11 @@
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms-compat.h>
 #include <glib.h>
+#include <getopt.h>
 
 GtkWidget *window, *terminal;
 TermConfig config;
+gchar *cmd = NULL;
 
 static void
 set_font_size(gint delta)
@@ -108,7 +110,7 @@ term_config_load(void)
     gsize i;
 
     key_file = g_key_file_new();
-    path = g_strdup_printf("%s/%s", getenv("HOME")?:"", TERM_CONFIG_PATH);
+    path = g_strdup_printf("%s/%s", g_getenv("HOME")?:"", TERM_CONFIG_PATH);
     ret = g_key_file_load_from_file(key_file,
                                     path,
                                     G_KEY_FILE_NONE,
@@ -129,7 +131,8 @@ term_config_load(void)
 
     if ((val = g_key_file_get_string(key_file, start_group,
                                      "WordChars", NULL)) == NULL) {
-        g_strlcpy(config.word_chars, TERM_WORD_CHARS, sizeof(config.word_chars));
+        g_strlcpy(config.word_chars, TERM_WORD_CHARS,
+                  sizeof(config.word_chars));
     } else {
         g_strlcpy(config.word_chars, val, sizeof(config.word_chars));
     }
@@ -269,6 +272,15 @@ get_child_environment(void)
 int
 main(int argc, char *argv[])
 {
+    int c;
+
+    while ((c = getopt(argc, argv, "e:")) != -1) {
+        switch (c) {
+        case 'e':
+            cmd = g_strdup(optarg);
+            break;
+        }
+    }
 	/* Initialise GTK and the widgets */
 	gtk_init(&argc, &argv);
 
@@ -299,11 +311,17 @@ main(int argc, char *argv[])
 
 	/* Start a new shell */
 	gchar **env;
+    gchar **fork_cmd;
 	env = get_child_environment();
+    if (cmd) {
+        fork_cmd = (gchar *[]){ "/bin/sh", "-c", cmd, NULL };
+    } else {
+        fork_cmd = (gchar *[]){ g_strdup(g_getenv("SHELL")), NULL };
+    }
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
 	    NULL,		/* working directory */
-	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
+        fork_cmd,
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
