@@ -211,6 +211,9 @@ void
 term_theme_cycle()
 {
     gint next_theme = (config.theme_index + 1) % config.theme_count;
+
+    if (config.theme_count <= 0)
+        return;
     term_theme_apply(next_theme);
     config.theme_index = next_theme;
 }
