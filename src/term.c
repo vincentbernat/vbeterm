@@ -37,6 +37,14 @@ set_font_size(gint delta)
 	pango_font_description_free(descr);
 }
 
+static void
+reset_font_size()
+{
+	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
+	    TERM_FONT);
+	set_font_size(0);
+}
+
 static gboolean
 on_dpi_changed(GtkSettings *settings,
     GParamSpec *pspec,
@@ -73,7 +81,7 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 			set_font_size(-1);
 			return TRUE;
 		case GDK_equal:
-			set_font_size(0);
+			reset_font_size();
 			return TRUE;
 		}
 	}
@@ -176,9 +184,7 @@ main(int argc, char *argv[])
 	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
 	    TRUE);
-	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
-	    TERM_FONT);
-	set_font_size(0);
+	reset_font_size();
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
@@ -190,12 +196,12 @@ main(int argc, char *argv[])
 	env = get_child_environment();
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
-	    NULL,		/* working directory */
+	    NULL,			/* working directory */
 	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
-	    NULL,		/* child pid */
+	    NULL,			/* child pid */
 	    NULL);
 	g_strfreev(env);
 
