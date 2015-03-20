@@ -16,10 +16,14 @@ Here is a short survey:
  - [lilyterm](http://lilyterm.luna.com.tw/)
  - [st](http://st.suckless.org/)
  - [xfce-terminal](http://www.xfce.org/projects/terminal/)
+ - [sterm][]
 
 `vbeterm` is really tailored to my need. You are unlikely to find it
-useful and your best bet is [evilvte][].
+useful. [sterm][] is a derivative with a bit more flexibility. Another
+close alternative with a ability to configure before compiling is
+[evilvte][].
 
+[sterm]: https://github.com/pyr/sterm
 [evilvte]: http://www.calno.com/evilvte/
 
 Features
