@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <vte/vte.h>
 #include <gdk/gdkkeysyms-compat.h>
 
 GtkWidget *window, *terminal;
@@ -84,7 +83,14 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 			reset_font_size();
 			return TRUE;
 		}
+	} else if (event->state & GDK_MOD1_MASK) {
+		switch (event->keyval) {
+		case GDK_slash:
+			dabbrev_expand(VTE_TERMINAL(terminal));
+			return TRUE;
+		}
 	}
+	dabbrev_stop();
 	return FALSE;
 }
 
