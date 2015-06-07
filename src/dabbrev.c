@@ -101,11 +101,11 @@ dabbrev_expand(VteTerminal *terminal)
 			free(prefix);
 			prefix = newprefix;
 		}
+		prefix[strlen(prefix) - 1] = '\0'; /* Remove newline */
 		if (!prefix || strlen(prefix) < TERM_DABBREV_MIN_PREFIX) {
 			free(prefix); prefix = NULL;
 			return;
 		}
-		prefix[strlen(prefix) - 1] = '\0'; /* Remove newline */
 	}
 	if (corpus == NULL) {
 		/* Retrieve the corpus */
