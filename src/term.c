@@ -21,27 +21,25 @@
 #include <unistd.h>
 #include <gdk/gdkkeysyms-compat.h>
 
-GtkWidget *window, *terminal;
-
 static void
-set_font_size(gint delta)
+set_font_size(VteTerminal *terminal, gint delta)
 {
 	PangoFontDescription *descr;
-	descr = pango_font_description_copy(vte_terminal_get_font(VTE_TERMINAL(terminal)));
+	descr = pango_font_description_copy(vte_terminal_get_font(terminal));
 	if (!descr) return;
 
 	gint current = pango_font_description_get_size(descr);
 	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
-	vte_terminal_set_font(VTE_TERMINAL(terminal), descr);
+	vte_terminal_set_font(terminal, descr);
 	pango_font_description_free(descr);
 }
 
 static void
-reset_font_size()
+reset_font_size(VteTerminal *terminal)
 {
-	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal),
+	vte_terminal_set_font_from_string(terminal,
 	    TERM_FONT);
-	set_font_size(0);
+	set_font_size(VTE_TERMINAL(terminal), 0);
 }
 
 static gboolean
@@ -49,21 +47,23 @@ on_dpi_changed(GtkSettings *settings,
     GParamSpec *pspec,
     gpointer user_data)
 {
-	set_font_size(0);
+	VteTerminal *terminal = user_data;
+	set_font_size(terminal, 0);
 	return TRUE;
 }
 
 static gboolean
 on_char_size_changed(GtkWidget *terminal, guint width, guint height, gpointer user_data)
 {
-	set_font_size(0);
+	set_font_size(VTE_TERMINAL(terminal), 0);
 	return TRUE;
 }
 
 static gboolean
 on_title_changed(GtkWidget *terminal, gpointer user_data)
 {
-	gtk_window_set_title(GTK_WINDOW(window),
+	GtkWindow *window = user_data;
+	gtk_window_set_title(window,
 	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:PACKAGE_NAME);
 	return TRUE;
 }
@@ -74,13 +74,13 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 	if (event->state & GDK_CONTROL_MASK) {
 		switch (event->keyval) {
 		case GDK_plus:
-			set_font_size(1);
+			set_font_size(VTE_TERMINAL(terminal), 1);
 			return TRUE;
 		case GDK_minus:
-			set_font_size(-1);
+			set_font_size(VTE_TERMINAL(terminal), -1);
 			return TRUE;
 		case GDK_equal:
-			reset_font_size();
+			reset_font_size(VTE_TERMINAL(terminal));
 			return TRUE;
 		}
 	} else if (event->state & GDK_MOD1_MASK) {
@@ -124,6 +124,8 @@ int
 main(int argc, char *argv[])
 {
 	/* Initialise GTK and the widgets */
+	GtkWidget *window, *terminal;
+
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	terminal = vte_terminal_new();
@@ -136,11 +138,11 @@ main(int argc, char *argv[])
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
 	g_signal_connect(terminal, "child-exited", gtk_main_quit, NULL);
-	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), NULL);
+	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 	g_signal_connect(gtk_settings_get_default(), "notify::gtk-xft-dpi",
-	    G_CALLBACK(on_dpi_changed), NULL);
+	    G_CALLBACK(on_dpi_changed), VTE_TERMINAL(terminal));
 
 	/* Configure terminal */
 	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
@@ -190,7 +192,7 @@ main(int argc, char *argv[])
 	    VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
 	    TRUE);
-	reset_font_size();
+	reset_font_size(VTE_TERMINAL(terminal));
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
