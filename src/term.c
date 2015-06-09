@@ -90,7 +90,7 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 			return TRUE;
 		}
 	}
-	dabbrev_stop();
+	dabbrev_stop(VTE_TERMINAL(terminal));
 	return FALSE;
 }
 

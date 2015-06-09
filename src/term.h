@@ -29,7 +29,7 @@
 #define TERM_FONT "DejaVu Sans Mono for Powerline 10"
 #define TERM_DABBREV_MIN_PREFIX 2
 
-void dabbrev_expand(VteTerminal *terminal);
-void dabbrev_stop();
+void dabbrev_expand(VteTerminal *);
+void dabbrev_stop(VteTerminal *);
 
 #endif

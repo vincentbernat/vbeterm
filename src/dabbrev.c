@@ -20,25 +20,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* TODO: be UTF-8 compliant */
+/* Per-terminal global state */
+struct dabbrev_state {
+	size_t corpus_len;
+	char *corpus;	/* Terminal content */
+	char *current;	/* Current position in content */
+	char *prefix;	/* Prefix to complete */
+	const char *last_insert;	/* Last word inserted */
+};
 
-/* Global state */
-static char *corpus = NULL;	/* Terminal content */
-static size_t corpus_len = 0;
-static char *current = NULL;	/* Current position in content */
-static char *prefix = NULL;	/* Prefix to complete */
-static const char *last_insert = NULL;	/* Last word inserted */
+static void
+dabbrev_free(struct dabbrev_state *state)
+{
+	printf("Free\n");
+	if (state == NULL) return;
+	free(state->corpus);
+	free(state->prefix);
+}
 
 #define DEL "\x7f"
 
 /* Get next word from current position */
 static const char *
-next_word(VteTerminal *terminal) {
-	char *end = current - 1;
+next_word(VteTerminal *terminal, struct dabbrev_state *state) {
+	char *end = state->current - 1;
 	while (1) {
-		if (end < corpus)
-			end = corpus + corpus_len;
-		if (end == current)
+		if (end < state->corpus)
+			end = state->corpus + state->corpus_len;
+		if (end == state->current)
 			return NULL;
 		if (*end == '\0') {
 			/* Shortcut case */
@@ -54,10 +63,10 @@ next_word(VteTerminal *terminal) {
 	}
 	char *start = end - 1;
 	while (1) {
-		if (start < corpus ||
+		if (start < state->corpus ||
 		    *start == '\0' ||
 		    !vte_terminal_is_word_char(terminal, *start)) {
-			current = ++start;
+			state->current = ++start;
 			return start;
 		}
 		start--;
@@ -67,12 +76,13 @@ next_word(VteTerminal *terminal) {
 
 /* Get the next word matching the current prefix */
 static const char *
-next_word_matching_prefix(VteTerminal *terminal) {
-	const char *match, *first_match = next_word(terminal);
+next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state) {
+	const char *match, *first_match = next_word(terminal, state);
 	match = first_match;
 	if (match == NULL) return NULL;
-	while (strncmp(match, prefix, strlen(prefix)) || !strcmp(match, prefix)) {
-		match = next_word(terminal);
+	while (strncmp(match, state->prefix, strlen(state->prefix)) ||
+	    !strcmp(match, state->prefix)) {
+		match = next_word(terminal, state);
 		if (match == NULL) return NULL; /* Safety */
 		if (match == first_match) return NULL;
 	}
@@ -82,7 +92,15 @@ next_word_matching_prefix(VteTerminal *terminal) {
 void
 dabbrev_expand(VteTerminal *terminal)
 {
-	if (prefix == NULL) {
+	struct dabbrev_state *state = g_object_get_data(G_OBJECT(terminal), "dabbrev");
+	if (state == NULL) {
+		if ((state = calloc(1, sizeof(struct dabbrev_state))) == NULL)
+			return;
+		printf("Alloc\n");
+		g_object_set_data_full(G_OBJECT(terminal), "dabbrev", state,
+		    (GDestroyNotify)dabbrev_free);
+	}
+	if (state->prefix == NULL) {
 		/* What prefix do we want to complete? */
 		glong row, start_column, end_column;
 		vte_terminal_get_cursor_position(terminal,
@@ -98,46 +116,46 @@ dabbrev_expand(VteTerminal *terminal)
 				free(newprefix);
 				break;
 			}
-			free(prefix);
-			prefix = newprefix;
+			free(state->prefix);
+			state->prefix = newprefix;
 		}
-		prefix[strlen(prefix) - 1] = '\0'; /* Remove newline */
-		if (!prefix || strlen(prefix) < TERM_DABBREV_MIN_PREFIX) {
-			free(prefix); prefix = NULL;
+		state->prefix[strlen(state->prefix) - 1] = '\0'; /* Remove newline */
+		if (!state->prefix || strlen(state->prefix) < TERM_DABBREV_MIN_PREFIX) {
+			free(state->prefix); state->prefix = NULL;
 			return;
 		}
 	}
-	if (corpus == NULL) {
+	if (state->corpus == NULL) {
 		/* Retrieve the corpus */
-		corpus = vte_terminal_get_text(terminal, NULL, NULL, NULL);
-		corpus_len = strlen(corpus);
-		current = corpus + corpus_len;
+		state->corpus = vte_terminal_get_text(terminal, NULL, NULL, NULL);
+		state->corpus_len = strlen(state->corpus);
+		state->current = state->corpus + state->corpus_len;
 	}
 
-	const char *next_insert = next_word_matching_prefix(terminal);
+	const char *next_insert = next_word_matching_prefix(terminal, state);
 	if (next_insert == NULL) return;
-	next_insert += strlen(prefix);
+	next_insert += strlen(state->prefix);
 
 	/* Prepare stream to be sent */
-	if (last_insert != NULL) {
-		if (!strcmp(last_insert, next_insert)) {
+	if (state->last_insert != NULL) {
+		if (!strcmp(state->last_insert, next_insert)) {
 			/* Already inserted the same, do nothing */
 			return;
 		}
 		/* Erase last insert */
-		size_t len = strlen(last_insert);
+		size_t len = strlen(state->last_insert);
 		for (size_t i = 0; i < len; i++)
 			vte_terminal_feed_child_binary(terminal, DEL, 1);
 	}
 	/* Send it */
 	vte_terminal_feed_child(terminal, next_insert, strlen(next_insert));
 
-	last_insert = next_insert;
+	state->last_insert = next_insert;
 }
 
-void dabbrev_stop()
+void
+dabbrev_stop(VteTerminal *terminal)
 {
-	free(corpus); corpus = NULL;
-	free(prefix); prefix = NULL;
-	last_insert = NULL;
+	g_object_set_data_full(G_OBJECT(terminal), "dabbrev",
+	    NULL, (GDestroyNotify)dabbrev_free);
 }
