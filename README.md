@@ -30,7 +30,6 @@ Features
 --------
 
  - No tab support
- - No server support
  - Use of VTE 2.90 (GTK3)
  - dabbrev-expand (mapped on `Alt-/`)
 

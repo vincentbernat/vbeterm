@@ -69,6 +69,14 @@ on_title_changed(GtkWidget *terminal, gpointer user_data)
 }
 
 static gboolean
+on_exit(GtkWidget *any, gpointer user_data)
+{
+	GtkWindow *window = user_data;
+	gtk_widget_destroy(GTK_WIDGET(window));
+	return TRUE;
+}
+
+static gboolean
 on_key_press(GtkWidget *terminal, GdkEventKey *event)
 {
 	if (event->state & GDK_CONTROL_MASK) {
@@ -119,15 +127,14 @@ get_child_environment(void)
 	return result;
 }
 
-
-int
-main(int argc, char *argv[])
+static void
+activate(GtkApplication *app)
 {
 	/* Initialise GTK and the widgets */
 	GtkWidget *window, *terminal;
 
-	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_application_add_window(app, GTK_WINDOW(window));
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	gtk_container_add(GTK_CONTAINER(window), terminal);
@@ -136,8 +143,7 @@ main(int argc, char *argv[])
 	gtk_window_set_focus(GTK_WINDOW(window), terminal);
 
 	/* Connect some signals */
-	g_signal_connect(window, "delete-event", gtk_main_quit, NULL);
-	g_signal_connect(terminal, "child-exited", gtk_main_quit, NULL);
+	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
@@ -212,8 +218,16 @@ main(int argc, char *argv[])
 	    NULL,			/* child pid */
 	    NULL);
 	g_strfreev(env);
+}
 
-	/* Pack widgets and start the terminal */
-	gtk_main();
-	return FALSE;
+int
+main(int argc, char *argv[])
+{
+	GtkApplication *app;
+	gint status;
+	app = gtk_application_new("im.bernat.Terminal", 0);
+	g_signal_connect(app, "activate", G_CALLBACK (activate), NULL);
+	status = g_application_run(G_APPLICATION(app), argc, argv);
+	g_object_unref(app);
+	return status;
 }
