@@ -32,7 +32,6 @@ struct dabbrev_state {
 static void
 dabbrev_free(struct dabbrev_state *state)
 {
-	printf("Free\n");
 	if (state == NULL) return;
 	free(state->corpus);
 	free(state->prefix);
@@ -96,7 +95,6 @@ dabbrev_expand(VteTerminal *terminal)
 	if (state == NULL) {
 		if ((state = calloc(1, sizeof(struct dabbrev_state))) == NULL)
 			return;
-		printf("Alloc\n");
 		g_object_set_data_full(G_OBJECT(terminal), "dabbrev", state,
 		    (GDestroyNotify)dabbrev_free);
 	}
