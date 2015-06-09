@@ -77,7 +77,7 @@ on_exit(GtkWidget *any, gpointer user_data)
 }
 
 static gboolean
-on_key_press(GtkWidget *terminal, GdkEventKey *event)
+on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 {
 	if (event->state & GDK_CONTROL_MASK) {
 		switch (event->keyval) {
@@ -94,7 +94,7 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event)
 	} else if (event->state & GDK_MOD1_MASK) {
 		switch (event->keyval) {
 		case GDK_slash:
-			dabbrev_expand(VTE_TERMINAL(terminal));
+			dabbrev_expand(GTK_WINDOW(user_data), VTE_TERMINAL(terminal));
 			return TRUE;
 		}
 	}
@@ -138,6 +138,7 @@ activate(GtkApplication *app)
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	gtk_container_add(GTK_CONTAINER(window), terminal);
+	g_object_set_data(G_OBJECT(window), "terminal", terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
 	gtk_widget_show_all(window);
 	gtk_window_set_focus(GTK_WINDOW(window), terminal);
@@ -145,7 +146,7 @@ activate(GtkApplication *app)
 	/* Connect some signals */
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
-	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), NULL);
+	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 	g_signal_connect(gtk_settings_get_default(), "notify::gtk-xft-dpi",
 	    G_CALLBACK(on_dpi_changed), VTE_TERMINAL(terminal));

@@ -39,9 +39,45 @@ dabbrev_free(struct dabbrev_state *state)
 
 #define DEL "\x7f"
 
+static char *
+append_corpus(VteTerminal *terminal, char *corpus)
+{
+	char *text = vte_terminal_get_text(terminal, NULL, NULL, NULL);
+	if (corpus == NULL) return text;
+
+	char *new_corpus = g_strdup_printf("%s %s", corpus, text);
+	free(corpus); free(text);
+	return new_corpus;
+}
+
+static void
+update_corpus(GtkWindow *window, VteTerminal *terminal, struct dabbrev_state *state)
+{
+	if (state->corpus != NULL) return;
+
+	/* Append all windows */
+	char *corpus = NULL;
+	for (GList *windows = gtk_application_get_windows(gtk_window_get_application(window));
+	     windows;
+	     windows = windows->next) {
+		GtkWindow *other_window = windows->data;
+		VteTerminal *other_terminal = g_object_get_data(G_OBJECT(other_window),
+		    "terminal");
+		if (other_window == window || other_terminal == NULL) continue;
+
+		corpus = append_corpus(other_terminal, corpus);
+	}
+
+	/* Append the current window */
+	state->corpus = append_corpus(terminal, corpus);
+	state->corpus_len = strlen(state->corpus);
+	state->current = state->corpus + state->corpus_len;
+}
+
 /* Get next word from current position */
 static const char *
-next_word(VteTerminal *terminal, struct dabbrev_state *state) {
+next_word(VteTerminal *terminal, struct dabbrev_state *state)
+{
 	char *end = state->current - 1;
 	while (1) {
 		if (end < state->corpus)
@@ -89,7 +125,7 @@ next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state) {
 }
 
 void
-dabbrev_expand(VteTerminal *terminal)
+dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 {
 	struct dabbrev_state *state = g_object_get_data(G_OBJECT(terminal), "dabbrev");
 	if (state == NULL) {
@@ -123,12 +159,7 @@ dabbrev_expand(VteTerminal *terminal)
 			return;
 		}
 	}
-	if (state->corpus == NULL) {
-		/* Retrieve the corpus */
-		state->corpus = vte_terminal_get_text(terminal, NULL, NULL, NULL);
-		state->corpus_len = strlen(state->corpus);
-		state->current = state->corpus + state->corpus_len;
-	}
+	update_corpus(window, terminal, state);
 
 	const char *next_insert = next_word_matching_prefix(terminal, state);
 	if (next_insert == NULL) return;
