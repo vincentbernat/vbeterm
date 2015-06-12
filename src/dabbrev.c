@@ -110,6 +110,15 @@ next_word(VteTerminal *terminal, struct dabbrev_state *state)
 	return NULL;		/* Unreachable */
 }
 
+static void
+erase(const char *match, struct dabbrev_state *state)
+{
+	size_t match_len = strlen(match);
+	memmove((char*)match, match + match_len + 1,
+	    state->corpus_len - (match - state->corpus) - (match_len + 1));
+	state->corpus_len -= match_len + 1;
+}
+
 /* Get the next word matching the current prefix */
 static const char *
 next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state)
@@ -120,9 +129,7 @@ next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state)
 	while (strncmp(match, state->prefix, strlen(state->prefix)) ||
 	    !strcmp(match, state->prefix)) {
 		/* Erase the current word from the corpus */
-		memmove((char*)match, match + strlen(match) + 1,
-		    state->corpus_len - (match - state->corpus) - (strlen(match) + 1));
-		state->corpus_len -= strlen(match) + 1;
+		erase(match, state);
 
 		/* Try another one */
 		match = next_word(terminal, state);
@@ -154,9 +161,7 @@ next_unique_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *st
 		}
 
 		/* Already found this word, erase */
-		memmove((char*)match, match + strlen(match) + 1,
-		    state->corpus_len - (match - state->corpus) - (strlen(match) + 1));
-		state->corpus_len -= strlen(match) + 1;
+		erase(match, state);
 
 		/* Try another one */
 		match = next_word_matching_prefix(terminal, state);
