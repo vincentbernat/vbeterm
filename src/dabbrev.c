@@ -26,7 +26,7 @@ struct dabbrev_state {
 	char *corpus;	/* Terminal content */
 	char *current;	/* Current position in content */
 	char *prefix;	/* Prefix to complete */
-	const char *last_insert;	/* Last word inserted */
+	char *last_insert;	/* Last word inserted */
 };
 
 static void
@@ -35,6 +35,7 @@ dabbrev_free(struct dabbrev_state *state)
 	if (state == NULL) return;
 	free(state->corpus);
 	free(state->prefix);
+	free(state->last_insert);
 }
 
 #define DEL "\x7f"
@@ -117,6 +118,12 @@ next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state) {
 	if (match == NULL) return NULL;
 	while (strncmp(match, state->prefix, strlen(state->prefix)) ||
 	    !strcmp(match, state->prefix)) {
+		/* Erase the current word from the corpus */
+		memmove((char*)match, match + strlen(match) + 1,
+		    state->corpus_len - (match - state->corpus) - (strlen(match) + 1));
+		state->corpus_len -= strlen(match) + 1;
+
+		/* Try another one */
 		match = next_word(terminal, state);
 		if (match == NULL) return NULL; /* Safety */
 		if (match == first_match) return NULL;
@@ -179,7 +186,8 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 	/* Send it */
 	vte_terminal_feed_child(terminal, next_insert, strlen(next_insert));
 
-	state->last_insert = next_insert;
+	free(state->last_insert);
+	state->last_insert = strdup(next_insert);
 }
 
 void
