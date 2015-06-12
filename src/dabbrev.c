@@ -112,7 +112,8 @@ next_word(VteTerminal *terminal, struct dabbrev_state *state)
 
 /* Get the next word matching the current prefix */
 static const char *
-next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state) {
+next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state)
+{
 	const char *match, *first_match = next_word(terminal, state);
 	match = first_match;
 	if (match == NULL) return NULL;
@@ -129,6 +130,38 @@ next_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state) {
 		if (match == first_match) return NULL;
 	}
 	return match;
+}
+
+/* Get the next word matching the current prefix and not already found */
+static const char *
+next_unique_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *state)
+{
+	const char *match, *first_match = next_word_matching_prefix(terminal, state);
+	match = first_match;
+	if (match == NULL) return NULL;
+
+	const char *pos, *end;
+	while (1) {
+		pos = match;
+		end = state->corpus + state->corpus_len;
+		while (1) {
+			/* Check next word */
+			pos += strlen(pos) + 1;
+			while (pos < end && *pos == '\0') pos++;
+			if (pos == end) return match;
+			if (!strcmp(pos, match))
+				break;
+		}
+
+		/* Already found this word, erase */
+		memmove((char*)match, match + strlen(match) + 1,
+		    state->corpus_len - (match - state->corpus) - (strlen(match) + 1));
+		state->corpus_len -= strlen(match) + 1;
+
+		/* Try another one */
+		match = next_word_matching_prefix(terminal, state);
+		if (match == NULL || match == first_match) return NULL;
+	}
 }
 
 void
@@ -168,7 +201,7 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 	}
 	update_corpus(window, terminal, state);
 
-	const char *next_insert = next_word_matching_prefix(terminal, state);
+	const char *next_insert = next_unique_word_matching_prefix(terminal, state);
 	if (next_insert == NULL) return;
 	next_insert += strlen(state->prefix);
 
