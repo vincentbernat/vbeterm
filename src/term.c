@@ -123,23 +123,20 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 }
 
 static gchar**
-get_child_environment(void)
+get_child_environment(GApplicationCommandLine *cmdline)
 {
 	guint n;
-	gchar **env, **result, **p;
-	const gchar *value;
+	gchar **result;
 
 	/* Copy the current environment */
-	env = g_listenv();
-	n = g_strv_length (env);
+	const gchar * const *p;
+	const gchar * const *env = g_application_command_line_get_environ(cmdline);
+	n = g_strv_length((gchar **)env);
 	result = g_new (gchar *, n + 2);
 	for (n = 0, p = env; *p != NULL; ++p) {
-		if (g_strcmp0(*p, "COLORTERM") == 0) continue;
-		value = g_getenv (*p);
-		if (G_LIKELY(value != NULL))
-			result[n++] = g_strconcat (*p, "=", value, NULL);
+		if (g_strcmp0(*p, "COLORTERM=") == 0) continue;
+		result[n++] = g_strdup(*p);
 	}
-	g_strfreev(env);
 
 	/* Setup COLORTERM */
 	result[n++] = g_strdup_printf("COLORTERM=%s", PACKAGE_NAME);
@@ -152,6 +149,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 {
 	/* Initialise GTK and the widgets */
 	GtkWidget *window, *terminal;
+	GVariantDict *options = g_application_command_line_get_options_dict(cmdline);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_application_add_window(GTK_APPLICATION(app), GTK_WINDOW(window));
@@ -235,17 +233,16 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    FALSE);
 
 	/* Start a new shell */
-	GVariantDict *options = g_application_command_line_get_options_dict(cmdline);
 	gchar **env;
 	const gchar *cmd = NULL;
 	g_variant_dict_lookup(options, "command", "&s", &cmd);
-	env = get_child_environment();
+	env = get_child_environment(cmdline);
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
 	    g_application_command_line_get_cwd(cmdline), /* working directory */
 	    cmd?
 	    (gchar *[]){ "/bin/sh", "-c", g_strdup(cmd), NULL}:
-	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
+	    (gchar *[]){ g_strdup(g_application_command_line_getenv(cmdline, "SHELL")), 0 },
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
@@ -259,7 +256,8 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal2", G_APPLICATION_HANDLES_COMMAND_LINE);
+	app = gtk_application_new("im.bernat.Terminal2",
+	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
 	    (const GOptionEntry[]){
