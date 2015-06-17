@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <gdk/gdkkeysyms-compat.h>
 
 static void
@@ -69,9 +71,20 @@ on_title_changed(GtkWidget *terminal, gpointer user_data)
 }
 
 static gboolean
-on_exit(GtkWidget *any, gpointer user_data)
+on_child_exit(VteTerminal *term, gint status, gpointer user_data)
 {
 	GtkWindow *window = user_data;
+	GApplicationCommandLine *cmdline = g_object_get_data(G_OBJECT(window), "cmdline");
+	if (WIFEXITED(status)) {
+		g_application_command_line_set_exit_status(cmdline,
+		    WEXITSTATUS(status));
+	} else if (WIFSIGNALED(status)) {
+		g_application_command_line_set_exit_status(cmdline,
+		    128 + WTERMSIG(status));
+	} else {
+		g_application_command_line_set_exit_status(cmdline, 127);
+	}
+	g_object_unref(cmdline);
 	gtk_widget_destroy(GTK_WIDGET(window));
 	return TRUE;
 }
@@ -128,13 +141,13 @@ get_child_environment(void)
 }
 
 static void
-activate(GtkApplication *app)
+command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_data)
 {
 	/* Initialise GTK and the widgets */
 	GtkWidget *window, *terminal;
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_application_add_window(app, GTK_WINDOW(window));
+	gtk_application_add_window(GTK_APPLICATION(app), GTK_WINDOW(window));
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	gtk_container_add(GTK_CONTAINER(window), terminal);
@@ -143,8 +156,15 @@ activate(GtkApplication *app)
 	gtk_widget_show_all(window);
 	gtk_window_set_focus(GTK_WINDOW(window), terminal);
 
+	/* Only return when the window is closed */
+	g_application_hold(app);
+	g_object_set_data_full(G_OBJECT(cmdline), "application", app,
+	    (GDestroyNotify)g_application_release);
+	g_object_set_data_full(G_OBJECT(window), "cmdline", cmdline, NULL);
+	g_object_ref(cmdline);
+
 	/* Connect some signals */
-	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_exit), GTK_WINDOW(window));
+	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
@@ -226,8 +246,8 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal", 0);
-	g_signal_connect(app, "activate", G_CALLBACK (activate), NULL);
+	app = gtk_application_new("im.bernat.Terminal", G_APPLICATION_HANDLES_COMMAND_LINE);
+	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
 	return status;
