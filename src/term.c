@@ -235,11 +235,16 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    FALSE);
 
 	/* Start a new shell */
+	GVariantDict *options = g_application_command_line_get_options_dict(cmdline);
 	gchar **env;
+	const gchar *cmd = NULL;
+	g_variant_dict_lookup(options, "command", "&s", &cmd);
 	env = get_child_environment();
 	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
 	    VTE_PTY_DEFAULT,
-	    NULL,			/* working directory */
+	    g_application_command_line_get_cwd(cmdline), /* working directory */
+	    cmd?
+	    (gchar *[]){ "/bin/sh", "-c", g_strdup(cmd), NULL}:
 	    (gchar *[]){ g_strdup(g_getenv("SHELL")), 0 },
 	    env,		/* envv */
 	    0,			/* spawn flags */
@@ -256,6 +261,13 @@ main(int argc, char *argv[])
 	gint status;
 	app = gtk_application_new("im.bernat.Terminal2", G_APPLICATION_HANDLES_COMMAND_LINE);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
+	g_application_add_main_option_entries(G_APPLICATION(app),
+	    (const GOptionEntry[]){
+		    { "command", 'e', 0,  G_OPTION_ARG_STRING, NULL,
+				"Execute the argument to this option inside the terminal",
+				"CMD" },
+		    { NULL }
+	    });
 	status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
 	return status;
