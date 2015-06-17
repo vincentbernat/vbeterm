@@ -71,22 +71,29 @@ on_title_changed(GtkWidget *terminal, gpointer user_data)
 }
 
 static gboolean
+on_exit(GtkWindow *window)
+{
+	GApplicationCommandLine *cmdline = g_object_get_data(G_OBJECT(window), "cmdline");
+	if (cmdline) {
+		g_application_command_line_set_exit_status(cmdline, 0);
+		g_object_unref(cmdline);
+	}
+	gtk_widget_destroy(GTK_WIDGET(window));
+	return TRUE;
+}
+
+static gboolean
 on_child_exit(VteTerminal *term, gint status, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	GApplicationCommandLine *cmdline = g_object_get_data(G_OBJECT(window), "cmdline");
-	if (WIFEXITED(status)) {
-		g_application_command_line_set_exit_status(cmdline,
-		    WEXITSTATUS(status));
-	} else if (WIFSIGNALED(status)) {
-		g_application_command_line_set_exit_status(cmdline,
-		    128 + WTERMSIG(status));
-	} else {
-		g_application_command_line_set_exit_status(cmdline, 127);
-	}
-	g_object_unref(cmdline);
-	gtk_widget_destroy(GTK_WIDGET(window));
-	return TRUE;
+	return on_exit(window);
+}
+
+static gboolean
+on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+	GtkWindow *window = GTK_WINDOW(widget);
+	return on_exit(window);
 }
 
 static gboolean
@@ -164,6 +171,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	g_object_ref(cmdline);
 
 	/* Connect some signals */
+	g_signal_connect(window, "delete-event", G_CALLBACK(on_window_close), NULL);
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
@@ -246,7 +254,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal", G_APPLICATION_HANDLES_COMMAND_LINE);
+	app = gtk_application_new("im.bernat.Terminal2", G_APPLICATION_HANDLES_COMMAND_LINE);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
