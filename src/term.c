@@ -151,7 +151,17 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	GtkWidget *window, *terminal;
 	GVariantDict *options = g_application_command_line_get_options_dict(cmdline);
 
+	const gchar *class = NULL;
+	const gchar *name = NULL;
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	g_variant_dict_lookup(options, "class", "&s", &class);
+	g_variant_dict_lookup(options, "name", "&s", &name);
+	if (class != NULL || name != NULL) {
+		gtk_window_set_wmclass(GTK_WINDOW(window),
+		    name?name:g_get_prgname(),
+		    class?class:gdk_get_program_class());
+	}
+
 	gtk_application_add_window(GTK_APPLICATION(app), GTK_WINDOW(window));
 	terminal = vte_terminal_new();
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
@@ -272,6 +282,12 @@ main(int argc, char *argv[])
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
 	    (const GOptionEntry[]){
+		    { "class", 0, 0, G_OPTION_ARG_STRING, NULL,
+				"Program class as used by the window manager",
+				"CLASS" },
+		    { "name", 0, 0, G_OPTION_ARG_STRING, NULL,
+				"Program name as used by the window manager",
+				"NAME" },
 		    { "command", 'e', 0,  G_OPTION_ARG_STRING, NULL,
 				"Execute the argument to this option inside the terminal",
 				"CMD" },
