@@ -233,22 +233,33 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    FALSE);
 
 	/* Start a new shell */
-	gchar **env;
 	const gchar *cmd = NULL;
 	g_variant_dict_lookup(options, "command", "&s", &cmd);
+
+	gchar **env;
 	env = get_child_environment(cmdline);
-	vte_terminal_fork_command_full(VTE_TERMINAL (terminal),
+
+	gchar **command;
+	gchar *command0 = NULL;
+	if (cmd) {
+		command0 = g_strdup(cmd);
+		command = (gchar *[]){ "/bin/sh", "-c", command0, NULL};
+	} else {
+		command0 = g_strdup(g_application_command_line_getenv(cmdline, "SHELL"));
+		command = (gchar *[]){command0 , NULL };
+	}
+
+	vte_terminal_fork_command_full(VTE_TERMINAL(terminal),
 	    VTE_PTY_DEFAULT,
 	    g_application_command_line_get_cwd(cmdline), /* working directory */
-	    cmd?
-	    (gchar *[]){ "/bin/sh", "-c", g_strdup(cmd), NULL}:
-	    (gchar *[]){ g_strdup(g_application_command_line_getenv(cmdline, "SHELL")), 0 },
+	    command,
 	    env,		/* envv */
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
 	    NULL,			/* child pid */
 	    NULL);
 	g_strfreev(env);
+	g_free(command0);
 }
 
 int
