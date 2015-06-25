@@ -198,11 +198,11 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 			free(state->prefix);
 			state->prefix = newprefix;
 		}
-		state->prefix[strlen(state->prefix) - 1] = '\0'; /* Remove newline */
-		if (!state->prefix || strlen(state->prefix) < TERM_DABBREV_MIN_PREFIX) {
+		if (!state->prefix || strlen(state->prefix) < TERM_DABBREV_MIN_PREFIX + 1) {
 			free(state->prefix); state->prefix = NULL;
 			return;
 		}
+		state->prefix[strlen(state->prefix) - 1] = '\0'; /* Remove newline */
 	}
 	update_corpus(window, terminal, state);
 
