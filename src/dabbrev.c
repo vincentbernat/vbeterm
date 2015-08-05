@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* Per-terminal global state */
 struct dabbrev_state {
@@ -36,6 +37,15 @@ dabbrev_free(struct dabbrev_state *state)
 	free(state->corpus);
 	free(state->prefix);
 	free(state->last_insert);
+}
+
+/* Is the char a word char? */
+static gboolean
+is_word_char(const char c)
+{
+	if (isalnum(c)) return TRUE;
+	if (strchr(TERM_WORD_CHARS, c)) return TRUE;
+	return FALSE;
 }
 
 #define DEL "\x7f"
@@ -90,7 +100,7 @@ next_word(VteTerminal *terminal, struct dabbrev_state *state)
 			end--;
 			continue;
 		}
-		if (!vte_terminal_is_word_char(terminal, *end)) {
+		if (!is_word_char(*end)) {
 			*end = '\0';
 			end--;
 			continue;
@@ -101,7 +111,7 @@ next_word(VteTerminal *terminal, struct dabbrev_state *state)
 	while (1) {
 		if (start < state->corpus ||
 		    *start == '\0' ||
-		    !vte_terminal_is_word_char(terminal, *start)) {
+		    !is_word_char(*start)) {
 			state->current = ++start;
 			return start;
 		}
@@ -191,7 +201,7 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 			    row, start_column,
 			    row, end_column - 1,
 			    NULL, NULL, NULL);
-			if (!vte_terminal_is_word_char(terminal, newprefix[0])) {
+			if (!is_word_char(newprefix[0])) {
 				free(newprefix);
 				break;
 			}
@@ -219,7 +229,7 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 		/* Erase last insert */
 		size_t len = strlen(state->last_insert);
 		for (size_t i = 0; i < len; i++)
-			vte_terminal_feed_child_binary(terminal, DEL, 1);
+			vte_terminal_feed_child_binary(terminal, (const guint8 *)DEL, 1);
 	}
 	/* Send it */
 	vte_terminal_feed_child(terminal, next_insert, strlen(next_insert));

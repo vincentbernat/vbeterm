@@ -27,8 +27,8 @@ static void
 set_font_size(VteTerminal *terminal, gint delta)
 {
 	PangoFontDescription *descr;
-	descr = pango_font_description_copy(vte_terminal_get_font(terminal));
-	if (!descr) return;
+	if ((descr = pango_font_description_copy(vte_terminal_get_font(terminal))) == NULL)
+		return;
 
 	gint current = pango_font_description_get_size(descr);
 	pango_font_description_set_size(descr, current + delta * PANGO_SCALE);
@@ -39,9 +39,11 @@ set_font_size(VteTerminal *terminal, gint delta)
 static void
 reset_font_size(VteTerminal *terminal)
 {
-	vte_terminal_set_font_from_string(terminal,
-	    TERM_FONT);
-	set_font_size(VTE_TERMINAL(terminal), 0);
+	PangoFontDescription *descr;
+	if ((descr = pango_font_description_from_string(TERM_FONT)) == NULL)
+		return;
+	vte_terminal_set_font(terminal, descr);
+	pango_font_description_free(descr);
 }
 
 static gboolean
@@ -188,7 +190,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    G_CALLBACK(on_dpi_changed), VTE_TERMINAL(terminal));
 
 	/* Configure terminal */
-	vte_terminal_set_word_chars(VTE_TERMINAL(terminal),
+	vte_terminal_set_word_char_exceptions(VTE_TERMINAL(terminal),
 	    TERM_WORD_CHARS);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(terminal),
 	    0);
@@ -202,12 +204,12 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 #define CLR_R(x)   (((x) & 0xff0000) >> 16)
 #define CLR_G(x)   (((x) & 0x00ff00) >>  8)
 #define CLR_B(x)   (((x) & 0x0000ff) >>  0)
-#define CLR_16(x)  (((x) << 8) | (x))
-#define CLR_GDK(x) (const GdkColor){ 0, CLR_16(CLR_R(x)), CLR_16(CLR_G(x)), CLR_16(CLR_B(x)) }
+#define CLR_16(x)  ((double)(x) / 0xff)
+#define CLR_GDK(x) (const GdkRGBA){ .red = CLR_16(CLR_R(x)), .green = CLR_16(CLR_G(x)), .blue = CLR_16(CLR_B(x)), .alpha = 0 }
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0xffffff),
-	    &CLR_GDK(0),
-	    (const GdkColor[]){	CLR_GDK(0x111111),
+	    &(GdkRGBA){ .alpha = TERM_OPACITY },
+	    (const GdkRGBA[]){CLR_GDK(0x111111),
 			CLR_GDK(0xd36265),
 			CLR_GDK(0xaece91),
 			CLR_GDK(0xe7e18c),
@@ -224,11 +226,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 			CLR_GDK(0xA3BABF),
 			CLR_GDK(0xffffff)
  	    }, 16);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	vte_terminal_set_opacity(VTE_TERMINAL(terminal),
-	    TERM_OPACITY * 65535);
-#pragma GCC diagnostic pop
 	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0x008800));
 	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
@@ -238,8 +235,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	reset_font_size(VTE_TERMINAL(terminal));
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
-	    FALSE);
-	vte_terminal_set_visible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
 
 	/* Start a new shell */
@@ -259,7 +254,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 		command = (gchar *[]){command0 , NULL };
 	}
 
-	vte_terminal_fork_command_full(VTE_TERMINAL(terminal),
+	vte_terminal_spawn_sync(VTE_TERMINAL(terminal),
 	    VTE_PTY_DEFAULT,
 	    g_application_command_line_get_cwd(cmdline), /* working directory */
 	    command,
@@ -267,7 +262,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    0,			/* spawn flags */
 	    NULL, NULL,		/* child setup */
 	    NULL,			/* child pid */
-	    NULL);
+	    NULL, NULL);
 	g_strfreev(env);
 	g_free(command0);
 }
@@ -277,7 +272,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal2",
+	app = gtk_application_new("im.bernat.Terminal3",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
