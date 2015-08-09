@@ -31,6 +31,13 @@ author. If this demo is too simplistic, you can also have a look at
 [VTE's own demo](https://github.com/GNOME/vte/blob/master/src/app.vala),
 written in Vala.
 
+Also, a bold notice about VTE: this is a library whose sole purpose is
+to support Gnome Terminal. If a feature is needed for Gnome Terminal,
+it will be added. If a feature is not needed anymore, it will be
+deprecated and removed quickly. For example, Gnome Terminal removed
+the ability to set an image background. Shortly after, the
+corresponding function in VTE was also removed.
+
 [sterm]: https://github.com/pyr/sterm
 [evilvte]: http://www.calno.com/evilvte/
 
