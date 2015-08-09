@@ -23,6 +23,14 @@ useful. [sterm][] is a derivative with a bit more flexibility. Another
 close alternative with a ability to configure before compiling is
 [evilvte][].
 
+If you plan to write your own, have a look at the exsting one. It is
+likely that [evilvte][] will support what you want. If it is too
+"bloated" for your taste, you can start from the
+[minimal demo](http://www.calno.com/evilvte/demo.c) from the same
+author. If this demo is too simplistic, you can also have a look at
+[VTE's own demo](https://github.com/GNOME/vte/blob/master/src/app.vala),
+written in Vala.
+
 [sterm]: https://github.com/pyr/sterm
 [evilvte]: http://www.calno.com/evilvte/
 
