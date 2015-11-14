@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <locale.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <gdk/gdkkeysyms-compat.h>
@@ -152,6 +153,9 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	/* Initialise GTK and the widgets */
 	GtkWidget *window, *terminal;
 	GVariantDict *options = g_application_command_line_get_options_dict(cmdline);
+
+	/* No point of respecting LC_NUMERIC in a terminal. */
+	setlocale(LC_NUMERIC, "C");
 
 	const gchar *class = NULL;
 	const gchar *name = NULL;
