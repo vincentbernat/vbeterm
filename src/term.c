@@ -117,8 +117,10 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 	} else if (event->state & GDK_MOD1_MASK) {
 		switch (event->keyval) {
 		case GDK_slash:
-			dabbrev_expand(GTK_WINDOW(user_data), VTE_TERMINAL(terminal));
-			return TRUE;
+			if (dabbrev_expand(GTK_WINDOW(user_data), VTE_TERMINAL(terminal))) {
+				return TRUE;
+			}
+			return FALSE;
 		}
 	}
 	dabbrev_stop(VTE_TERMINAL(terminal));
@@ -276,7 +278,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal3",
+	app = gtk_application_new("im.bernat.Terminal4",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),

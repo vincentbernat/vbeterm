@@ -28,6 +28,7 @@ struct dabbrev_state {
 	char *current;	/* Current position in content */
 	char *prefix;	/* Prefix to complete */
 	char *last_insert;	/* Last word inserted */
+	gboolean not_found;	/* Nothing found during last tentative */
 };
 
 static void
@@ -179,16 +180,19 @@ next_unique_word_matching_prefix(VteTerminal *terminal, struct dabbrev_state *st
 	}
 }
 
-void
+gboolean
 dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 {
 	struct dabbrev_state *state = g_object_get_data(G_OBJECT(terminal), "dabbrev");
 	if (state == NULL) {
 		if ((state = calloc(1, sizeof(struct dabbrev_state))) == NULL)
-			return;
+			return FALSE;
 		g_object_set_data_full(G_OBJECT(terminal), "dabbrev", state,
 		    (GDestroyNotify)dabbrev_free);
+		state->not_found = FALSE;
 	}
+	if (state->not_found)
+		goto notfound;
 	if (state->prefix == NULL) {
 		/* What prefix do we want to complete? */
 		glong row, start_column, end_column;
@@ -209,33 +213,39 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 			state->prefix = newprefix;
 		}
 		if (!state->prefix || strlen(state->prefix) < TERM_DABBREV_MIN_PREFIX + 1) {
-			free(state->prefix); state->prefix = NULL;
-			return;
+			free(state->prefix);
+			state->prefix = NULL;
+			goto notfound;
 		}
 		state->prefix[strlen(state->prefix) - 1] = '\0'; /* Remove newline */
 	}
 	update_corpus(window, terminal, state);
 
 	const char *next_insert = next_unique_word_matching_prefix(terminal, state);
-	if (next_insert == NULL) return;
+	if (next_insert == NULL)
+		goto notfound;
 	next_insert += strlen(state->prefix);
 
 	/* Prepare stream to be sent */
 	if (state->last_insert != NULL) {
-		if (!strcmp(state->last_insert, next_insert)) {
-			/* Already inserted the same, do nothing */
-			return;
-		}
 		/* Erase last insert */
 		size_t len = strlen(state->last_insert);
 		for (size_t i = 0; i < len; i++)
 			vte_terminal_feed_child_binary(terminal, (const guint8 *)DEL, 1);
+		if (!strcmp(state->last_insert, next_insert)) {
+			/* Already inserted the same, don't redo it */
+			goto notfound;
+		}
 	}
 	/* Send it */
 	vte_terminal_feed_child(terminal, next_insert, strlen(next_insert));
 
 	free(state->last_insert);
 	state->last_insert = strdup(next_insert);
+	return TRUE;
+notfound:
+	state->not_found = TRUE;
+	return FALSE;
 }
 
 void
