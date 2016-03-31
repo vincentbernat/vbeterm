@@ -217,7 +217,9 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 			state->prefix = NULL;
 			goto notfound;
 		}
-		state->prefix[strlen(state->prefix) - 1] = '\0'; /* Remove newline */
+		for (ssize_t j = strlen(state->prefix) - 1;
+		     j >= 0 && isspace(state->prefix[j]); j--)
+			state->prefix[j] = '\0';
 	}
 	update_corpus(window, terminal, state);
 
