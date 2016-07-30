@@ -206,6 +206,8 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    TRUE);
 	vte_terminal_set_rewrap_on_resize(VTE_TERMINAL(terminal),
 	    TRUE);
+	vte_terminal_set_mouse_autohide(VTE_TERMINAL(terminal),
+	    TRUE);
 
 #define CLR_R(x)   (((x) & 0xff0000) >> 16)
 #define CLR_G(x)   (((x) & 0x00ff00) >>  8)
