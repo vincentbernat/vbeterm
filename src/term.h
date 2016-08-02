@@ -24,7 +24,7 @@
 
 #include <vte/vte.h>
 
-#define TERM_WORD_CHARS "-:./?%&#_=+@~"
+#define TERM_WORD_CHARS "-./?%&#_=+@~"
 #define TERM_OPACITY 0.85
 #define TERM_FONT "PragmataPro 10"
 #define TERM_DABBREV_MIN_PREFIX 2
