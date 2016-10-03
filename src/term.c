@@ -48,16 +48,6 @@ reset_font_size(VteTerminal *terminal)
 }
 
 static gboolean
-on_dpi_changed(GtkSettings *settings,
-    GParamSpec *pspec,
-    gpointer user_data)
-{
-	VteTerminal *terminal = user_data;
-	set_font_size(terminal, 0);
-	return TRUE;
-}
-
-static gboolean
 on_char_size_changed(GtkWidget *terminal, guint width, guint height, gpointer user_data)
 {
 	set_font_size(VTE_TERMINAL(terminal), 0);
@@ -192,8 +182,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
-	g_signal_connect(gtk_settings_get_default(), "notify::gtk-xft-dpi",
-	    G_CALLBACK(on_dpi_changed), VTE_TERMINAL(terminal));
 
 	/* Configure terminal */
 	vte_terminal_set_word_char_exceptions(VTE_TERMINAL(terminal),
