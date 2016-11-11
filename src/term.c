@@ -152,6 +152,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	const gchar *class = NULL;
 	const gchar *name = NULL;
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	g_variant_dict_lookup(options, "class", "&s", &class);
 	g_variant_dict_lookup(options, "name", "&s", &name);
 	if (class != NULL || name != NULL) {
@@ -162,7 +163,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 
 	gtk_application_add_window(GTK_APPLICATION(app), GTK_WINDOW(window));
 	terminal = vte_terminal_new();
-	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	g_object_set_data(G_OBJECT(window), "terminal", terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
