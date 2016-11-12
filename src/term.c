@@ -164,13 +164,14 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	g_object_set_data(G_OBJECT(window), "terminal", terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
-	gtk_widget_realize(GTK_WIDGET(window));
 
 #ifdef GDK_WINDOWING_X11
 	/* Set WMCLASS */
 	g_variant_dict_lookup(options, "class", "&s", &class);
 	g_variant_dict_lookup(options, "name", "&s", &name);
 	if (class != NULL || name != NULL) {
+		gtk_widget_realize(GTK_WIDGET(window));
+
 		GdkWindow *gwindow = gtk_widget_get_window(GTK_WIDGET(window));
 		GdkDisplay *gdisplay = gdk_window_get_display(gwindow);
 		if (GDK_IS_X11_DISPLAY(gdisplay)) {
