@@ -18,11 +18,17 @@
 #include "term.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <gdk/gdkkeysyms-compat.h>
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#include <X11/Xlib.h>
+#endif
 
 static void
 set_font_size(VteTerminal *terminal, gint delta)
@@ -64,7 +70,7 @@ on_title_changed(GtkWidget *terminal, gpointer user_data)
 }
 
 static gboolean
-on_exit(GtkWindow *window)
+on_app_exit(GtkWindow *window)
 {
 	GApplicationCommandLine *cmdline = g_object_get_data(G_OBJECT(window), "cmdline");
 	if (cmdline) {
@@ -79,14 +85,14 @@ static gboolean
 on_child_exit(VteTerminal *term, gint status, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	return on_exit(window);
+	return on_app_exit(window);
 }
 
 static gboolean
 on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	GtkWindow *window = GTK_WINDOW(widget);
-	return on_exit(window);
+	return on_app_exit(window);
 }
 
 static gboolean
@@ -153,19 +159,36 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	const gchar *name = NULL;
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), PACKAGE_NAME);
-	g_variant_dict_lookup(options, "class", "&s", &class);
-	g_variant_dict_lookup(options, "name", "&s", &name);
-	if (class != NULL || name != NULL) {
-		gtk_window_set_wmclass(GTK_WINDOW(window),
-		    name?name:g_get_prgname(),
-		    class?class:gdk_get_program_class());
-	}
-
 	gtk_application_add_window(GTK_APPLICATION(app), GTK_WINDOW(window));
 	terminal = vte_terminal_new();
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	g_object_set_data(G_OBJECT(window), "terminal", terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
+	gtk_widget_realize(GTK_WIDGET(window));
+
+#ifdef GDK_WINDOWING_X11
+	/* Set WMCLASS */
+	g_variant_dict_lookup(options, "class", "&s", &class);
+	g_variant_dict_lookup(options, "name", "&s", &name);
+	if (class != NULL || name != NULL) {
+		GdkWindow *gwindow = gtk_widget_get_window(GTK_WIDGET(window));
+		GdkDisplay *gdisplay = gdk_window_get_display(gwindow);
+		if (GDK_IS_X11_DISPLAY(gdisplay)) {
+			Display *xdisplay = gdk_x11_display_get_xdisplay(gdisplay);
+			Window xwindow = gdk_x11_window_get_xid(gwindow);
+			XClassHint *class_hint = XAllocClassHint();
+			class = class?class:gdk_get_program_class();
+			name = name?name:g_get_prgname();
+			class_hint->res_name = strdup(name);
+			class_hint->res_class = strdup(class);
+			XSetClassHint(xdisplay, xwindow, class_hint);
+			free(class_hint->res_name);
+			free(class_hint->res_class);
+			XFree(class_hint);
+		}
+	}
+#endif
+
 	gtk_widget_show_all(window);
 	gtk_window_set_focus(GTK_WINDOW(window), terminal);
 
@@ -268,7 +291,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal5",
+	app = gtk_application_new("im.bernat.Terminal6",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),

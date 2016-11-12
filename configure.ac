@@ -51,6 +51,7 @@ AX_LDFLAGS_OPTION([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state])
 AC_CACHE_SAVE
 
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 gdk-3.0])
+PKG_CHECK_MODULES([X11], [x11])
 PKG_CHECK_MODULES([VTE], [vte-2.91])
 
 AC_CACHE_SAVE
