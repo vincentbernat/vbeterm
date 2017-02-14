@@ -44,9 +44,9 @@ AX_CFLAGS_GCC_OPTION([-fstack-protector])
 AX_CFLAGS_GCC_OPTION([-D_FORTIFY_SOURCE=2])
 AX_CFLAGS_GCC_OPTION([-Wno-unused-parameter])
 AX_CFLAGS_GCC_OPTION([-Wno-missing-field-initializers])
-AX_LDFLAGS_OPTION([-Wl,-z,relro])
-AX_LDFLAGS_OPTION([-Wl,-z,now])
-AX_LDFLAGS_OPTION([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state])
+AX_CHECK_LINK_FLAG([-Wl,-z,relro])
+AX_CHECK_LINK_FLAG([-Wl,-z,now])
+AX_CHECK_LINK_FLAG([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state])
 
 AC_CACHE_SAVE
 
