@@ -25,7 +25,7 @@
 #include <vte/vte.h>
 
 #define TERM_WORD_CHARS "-./?%&#_=+@~"
-#define TERM_OPACITY 1.0
+#define TERM_OPACITY 0.9
 #define TERM_FONT "Iosevka Term 10"
 #define TERM_DABBREV_MIN_PREFIX 2
 
