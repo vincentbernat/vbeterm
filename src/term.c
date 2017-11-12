@@ -274,15 +274,17 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 		command = (gchar *[]){command0 , NULL };
 	}
 
-	vte_terminal_spawn_sync(VTE_TERMINAL(terminal),
+	vte_terminal_spawn_async(VTE_TERMINAL(terminal),
 	    VTE_PTY_DEFAULT,
 	    g_application_command_line_get_cwd(cmdline), /* working directory */
 	    command,
 	    env,		/* envv */
 	    0,			/* spawn flags */
-	    NULL, NULL,		/* child setup */
-	    NULL,			/* child pid */
-	    NULL, NULL);
+	    NULL, NULL, NULL,		/* child setup */
+	    -1,			/* timeout */
+	    NULL, NULL, NULL);
+	/* Safe to free as those variables are g_strdupv() early in
+	 * async_spawn_data_new() */
 	g_strfreev(env);
 	g_free(command0);
 }
