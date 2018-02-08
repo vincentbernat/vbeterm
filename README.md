@@ -38,8 +38,11 @@ deprecated and removed quickly. For example, Gnome Terminal removed
 the ability to set an image background. Shortly after, the
 corresponding function in VTE was also removed.
 
+For more information, see this [blog post][].
+
 [sterm]: https://github.com/pyr/sterm
 [evilvte]: http://www.calno.com/evilvte/
+[blog post]: https://vincent.bernat.im/en/blog/2017-write-own-terminal
 
 Features
 --------
