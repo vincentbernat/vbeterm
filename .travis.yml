@@ -1,6 +1,10 @@
 language: c
+dist: xenial
 sudo: false
-script: make
+script:
+  - ./autogen.sh
+  - ./configure
+  - make
 addons:
   apt:
     packages:
