@@ -98,7 +98,15 @@ on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 static gboolean
 on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 {
-	if (event->state & GDK_CONTROL_MASK) {
+	switch (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK)) {
+	case GDK_CONTROL_MASK | GDK_SHIFT_MASK:
+		switch (event->keyval) {
+		case GDK_KEY_V:
+			vte_terminal_paste_clipboard(VTE_TERMINAL(terminal));
+			return TRUE;
+		}
+		/* fallthrough */
+	case GDK_CONTROL_MASK:
 		switch (event->keyval) {
 		case GDK_KEY_plus:
 			set_font_size(VTE_TERMINAL(terminal), 1);
@@ -110,13 +118,8 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 			reset_font_size(VTE_TERMINAL(terminal));
 			return TRUE;
 		}
-	} else if (event->state & GDK_SHIFT_MASK & GDK_CONTROL_MASK) {
-		switch (event->keyval) {
-		case GDK_KEY_V:
-			vte_terminal_paste_clipboard(VTE_TERMINAL(terminal));
-			return TRUE;
-		}
-	} else if (event->state & GDK_MOD1_MASK) {
+		break;
+	case GDK_MOD1_MASK:
 		switch (event->keyval) {
 		case GDK_KEY_slash:
 			if (dabbrev_expand(GTK_WINDOW(user_data), VTE_TERMINAL(terminal))) {
@@ -124,6 +127,7 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 			}
 			return FALSE;
 		}
+		break;
 	}
 	dabbrev_stop(VTE_TERMINAL(terminal));
 	return FALSE;
@@ -300,7 +304,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal7",
+	app = gtk_application_new("im.bernat.Terminal8",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
