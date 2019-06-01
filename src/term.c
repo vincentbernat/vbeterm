@@ -110,9 +110,9 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 			reset_font_size(VTE_TERMINAL(terminal));
 			return TRUE;
 		}
-	} else if (event->state & GDK_SHIFT_MASK) {
+	} else if (event->state & GDK_SHIFT_MASK & GDK_CONTROL_MASK) {
 		switch (event->keyval) {
-		case GDK_Insert:
+		case GDK_KEY_V:
 			vte_terminal_paste_clipboard(VTE_TERMINAL(terminal));
 			return TRUE;
 		}
