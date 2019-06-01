@@ -100,13 +100,13 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 {
 	if (event->state & GDK_CONTROL_MASK) {
 		switch (event->keyval) {
-		case GDK_plus:
+		case GDK_KEY_plus:
 			set_font_size(VTE_TERMINAL(terminal), 1);
 			return TRUE;
-		case GDK_minus:
+		case GDK_KEY_minus:
 			set_font_size(VTE_TERMINAL(terminal), -1);
 			return TRUE;
-		case GDK_equal:
+		case GDK_KEY_equal:
 			reset_font_size(VTE_TERMINAL(terminal));
 			return TRUE;
 		}
@@ -118,7 +118,7 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 		}
 	} else if (event->state & GDK_MOD1_MASK) {
 		switch (event->keyval) {
-		case GDK_slash:
+		case GDK_KEY_slash:
 			if (dabbrev_expand(GTK_WINDOW(user_data), VTE_TERMINAL(terminal))) {
 				return TRUE;
 			}
