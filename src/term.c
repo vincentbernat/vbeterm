@@ -119,6 +119,13 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 			return TRUE;
 		}
 		break;
+	case GDK_SHIFT_MASK:
+		switch (event->keyval) {
+		case GDK_KEY_Insert:
+			vte_terminal_paste_clipboard(VTE_TERMINAL(terminal));
+			return TRUE;
+		}
+		break;
 	case GDK_MOD1_MASK:
 		switch (event->keyval) {
 		case GDK_KEY_slash:
