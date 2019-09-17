@@ -30,23 +30,23 @@ AC_PROG_LN_S
 AC_PROG_EGREP
 
 # Check some compiler flags
-AX_CFLAGS_GCC_OPTION([-fdiagnostics-show-option])
-AX_CFLAGS_GCC_OPTION([-pipe])
-AX_CFLAGS_GCC_OPTION([-Wall])
-AX_CFLAGS_GCC_OPTION([-W])
-AX_CFLAGS_GCC_OPTION([-Wextra])
-AX_CFLAGS_GCC_OPTION([-Wformat])
-AX_CFLAGS_GCC_OPTION([-Wformat-security])
-AX_CFLAGS_GCC_OPTION([-Wfatal-errors])
-AX_CFLAGS_GCC_OPTION([-Wcast-align])
-AX_CFLAGS_GCC_OPTION([-Winline])
-AX_CFLAGS_GCC_OPTION([-fstack-protector])
-AX_CFLAGS_GCC_OPTION([-D_FORTIFY_SOURCE=2])
-AX_CFLAGS_GCC_OPTION([-Wno-unused-parameter])
-AX_CFLAGS_GCC_OPTION([-Wno-missing-field-initializers])
-AX_CHECK_LINK_FLAG([-Wl,-z,relro])
-AX_CHECK_LINK_FLAG([-Wl,-z,now])
-AX_CHECK_LINK_FLAG([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state])
+AX_CFLAGS_GCC_OPTION([-fdiagnostics-show-option],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-pipe],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wall],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-W],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wextra],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wformat],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wformat-security],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wfatal-errors],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wcast-align],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Winline],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-fstack-protector],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-D_FORTIFY_SOURCE=2],[MORE_CPPFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wno-unused-parameter],[MORE_CFLAGS])
+AX_CFLAGS_GCC_OPTION([-Wno-missing-field-initializers],[MORE_CFLAGS])
+AX_LDFLAGS_OPTION([-Wl,-z,relro],[MORE_LDFLAGS])
+AX_LDFLAGS_OPTION([-Wl,-z,now],[MORE_LDFLAGS])
+AX_LDFLAGS_OPTION([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state],[MORE_LDFLAGS])
 
 AC_CACHE_SAVE
 
@@ -56,6 +56,9 @@ PKG_CHECK_MODULES([VTE], [vte-2.91])
 
 AC_CACHE_SAVE
 
+AC_SUBST([MORE_CFLAGS])
+AC_SUBST([MORE_CPPFLAGS])
+AC_SUBST([MORE_LDFLAGS])
 AC_OUTPUT
 
 cat <<EOF
@@ -63,8 +66,8 @@ cat <<EOF
 ------------------ Summary ------------------
  $PACKAGE_NAME version $PACKAGE_VERSION
   Prefix.........: $prefix
-  C Compiler.....: $CC $CFLAGS $CPPFLAGS
-  Linker.........: $LD $LDFLAGS $LIBS
+  C Compiler.....: $CC $MORE_CFLAGS $MORE_CPPFLAGS $CFLAGS $CPPFLAGS
+  Linker.........: $LD $MORE_LDFLAGS $LDFLAGS $LIBS
 ---------------------------------------------
 
 Check the above options and compile with:
