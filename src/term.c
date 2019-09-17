@@ -233,8 +233,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
 	    TRUE);
-	vte_terminal_set_rewrap_on_resize(VTE_TERMINAL(terminal),
-	    TRUE);
 	vte_terminal_set_mouse_autohide(VTE_TERMINAL(terminal),
 	    TRUE);
 
