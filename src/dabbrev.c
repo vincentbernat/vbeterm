@@ -198,12 +198,12 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 		glong row, start_column, end_column;
 		vte_terminal_get_cursor_position(terminal,
 		    &end_column, &row);
-		for (start_column = end_column - 1;
+		for (start_column = end_column;
 		     start_column >= 0;
 		     start_column--) {
 			char *newprefix = vte_terminal_get_text_range(terminal,
 			    row, start_column,
-			    row, end_column - 1,
+			    row, end_column,
 			    NULL, NULL, NULL);
 			if (!is_word_char(newprefix[0])) {
 				free(newprefix);
