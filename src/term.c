@@ -279,14 +279,16 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	gchar **env;
 	env = get_child_environment(cmdline);
 
-	gchar **command;
+	gchar *command[4] = {};
 	gchar *command0 = NULL;
 	if (cmd) {
 		command0 = g_strdup(cmd);
-		command = (gchar *[]){ "/bin/sh", "-c", command0, NULL};
+		command[0] = "/bin/sh";
+		command[1] = "-c";
+		command[2] = command0;
 	} else {
 		command0 = g_strdup(g_application_command_line_getenv(cmdline, "SHELL"));
-		command = (gchar *[]){command0 , NULL };
+		command[0] = command0;
 	}
 
 	vte_terminal_spawn_async(VTE_TERMINAL(terminal),
@@ -295,7 +297,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    command,
 	    env,		/* envv */
 	    0,			/* spawn flags */
-	    NULL, NULL, NULL,		/* child setup */
+	    NULL, NULL, NULL,	/* child setup */
 	    -1,			/* timeout */
 	    NULL, NULL, NULL);
 	/* Safe to free as those variables are g_strdupv() early in
@@ -309,7 +311,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal8",
+	app = gtk_application_new("im.bernat.Terminal10",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
