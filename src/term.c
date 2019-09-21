@@ -279,17 +279,12 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	gchar **env;
 	env = get_child_environment(cmdline);
 
-	gchar *command[4] = {};
+	gchar **command;
 	gchar *command0 = NULL;
-	if (cmd) {
-		command0 = g_strdup(cmd);
-		command[0] = "/bin/sh";
-		command[1] = "-c";
-		command[2] = command0;
-	} else {
-		command0 = g_strdup(g_application_command_line_getenv(cmdline, "SHELL"));
-		command[0] = command0;
-	}
+	command = cmd ?
+	    (gchar *[]){"/bin/sh", "-c", command0 = g_strdup(cmd), NULL} :
+	    (gchar *[]){command0 = g_strdup(g_application_command_line_getenv(cmdline, "SHELL")),
+		    NULL};
 
 	vte_terminal_spawn_async(VTE_TERMINAL(terminal),
 	    VTE_PTY_DEFAULT,
