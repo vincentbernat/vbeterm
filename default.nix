@@ -2,7 +2,7 @@
 
 pkgs.stdenv.mkDerivation {
   name = "vbeterm";
-  src = ./.;
-  nativeBuildInputs = [ pkgs.pkgconfig ];
+  src = pkgs.nix-gitignore.gitignoreSource [] ./.;
+  nativeBuildInputs = [ pkgs.autoreconfHook pkgs.pkgconfig ];
   buildInputs = [ pkgs.vte ];
 }
