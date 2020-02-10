@@ -42,7 +42,7 @@ For more information, see this [blog post][].
 
 [sterm]: https://github.com/pyr/sterm
 [evilvte]: http://www.calno.com/evilvte/
-[blog post]: https://vincent.bernat.im/en/blog/2017-write-own-terminal
+[blog post]: https://vincent.bernat.ch/en/blog/2017-write-own-terminal
 
 Features
 --------
