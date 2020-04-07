@@ -146,18 +146,15 @@ get_child_environment(GApplicationCommandLine *cmdline)
 	guint n;
 	gchar **result;
 
-	/* Copy the current environment */
+	/* Copy the current environment: vte_terminal_spawn_async expects a
+	 * mutable copy from its signature. */
 	const gchar * const *p;
 	const gchar * const *env = g_application_command_line_get_environ(cmdline);
 	n = g_strv_length((gchar **)env);
-	result = g_new (gchar *, n + 2);
+	result = g_new (gchar *, n + 1);
 	for (n = 0, p = env; *p != NULL; ++p) {
-		if (g_strcmp0(*p, "COLORTERM=") == 0) continue;
 		result[n++] = g_strdup(*p);
 	}
-
-	/* Setup COLORTERM */
-	result[n++] = g_strdup_printf("COLORTERM=%s", PACKAGE_NAME);
 	result[n] = NULL;
 	return result;
 }
@@ -306,7 +303,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("im.bernat.Terminal10",
+	app = gtk_application_new("im.bernat.Terminal11",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
