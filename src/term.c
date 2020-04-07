@@ -262,8 +262,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    &CLR_GDK(0x008800));
 	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(terminal),
 	    VTE_CURSOR_BLINK_OFF);
-	vte_terminal_set_allow_bold(VTE_TERMINAL(terminal),
-	    TRUE);
 	reset_font_size(VTE_TERMINAL(terminal));
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
