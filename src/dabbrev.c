@@ -233,7 +233,7 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 		/* Erase last insert */
 		size_t len = strlen(state->last_insert);
 		for (size_t i = 0; i < len; i++)
-			vte_terminal_feed_child_binary(terminal, (const guint8 *)DEL, 1);
+			vte_terminal_feed_child(terminal, (const char*)DEL, 1);
 		if (!strcmp(state->last_insert, next_insert)) {
 			/* Already inserted the same, don't redo it */
 			goto notfound;
