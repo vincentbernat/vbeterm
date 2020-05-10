@@ -96,25 +96,6 @@ on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 }
 
 static gboolean
-on_button_press(GtkWidget *terminal, GdkEventButton *event, gpointer user_data)
-{
-	gboolean handled = FALSE;
-	char *url = vte_terminal_hyperlink_check_event(VTE_TERMINAL(terminal),
-	    (GdkEvent*)event);
-
-	if (!url ||
-	    event->button != 1 ||
-	    !(event->state & GDK_CONTROL_MASK)) goto out;
-	handled = TRUE;
-	/* We cannot do much with the error as we don't really have a GUI. */
-	(void)gtk_show_uri_on_window(GTK_WINDOW(terminal),
-	    url, event->time, NULL);
- out:
-	free(url);
-	return handled;
-}
-
-static gboolean
 on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 {
 	switch (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK)) {
@@ -238,7 +219,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
-	g_signal_connect(terminal, "button-press-event", G_CALLBACK(on_button_press), GTK_WINDOW(window));
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 
 	/* Configure terminal */
@@ -286,8 +266,6 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 
 	vte_terminal_set_audible_bell(VTE_TERMINAL(terminal),
 	    FALSE);
-	vte_terminal_set_allow_hyperlink(VTE_TERMINAL(terminal),
-	    TRUE);
 
 	/* Start a new shell */
 	const gchar *cmd = NULL;
