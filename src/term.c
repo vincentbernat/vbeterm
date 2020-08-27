@@ -247,7 +247,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 		    CLR_GDK(0xaece91),
 		    CLR_GDK(0xe7e18c),
 		    CLR_GDK(0x5297cf),
-		    CLR_GDK(0x963c59),
+		    CLR_GDK(0xde7fa8),
 		    CLR_GDK(0x5e7175),
 		    CLR_GDK(0xbebebe),
 		    CLR_GDK(0x666666),
@@ -255,7 +255,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 		    CLR_GDK(0xcfefb3),
 		    CLR_GDK(0xfff796),
 		    CLR_GDK(0x74b8ef),
-		    CLR_GDK(0xb85e7b),
+		    CLR_GDK(0xddaaff),
 		    CLR_GDK(0xa3babf),
 		    CLR_GDK(0xffffff),
  	    }, 16);
@@ -302,7 +302,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal",
+	app = gtk_application_new("ch.bernat.Terminal1",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
