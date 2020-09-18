@@ -69,30 +69,31 @@ on_title_changed(GtkWidget *terminal, gpointer user_data)
 	return TRUE;
 }
 
-static gboolean
-on_app_exit(GtkWindow *window)
+static void
+terminate(GtkWindow *window, gint status)
 {
 	GApplicationCommandLine *cmdline = g_object_get_data(G_OBJECT(window), "cmdline");
 	if (cmdline) {
-		g_application_command_line_set_exit_status(cmdline, 0);
+		g_application_command_line_set_exit_status(cmdline, status);
 		g_object_unref(cmdline);
 	}
 	gtk_widget_destroy(GTK_WIDGET(window));
-	return TRUE;
 }
 
 static gboolean
 on_child_exit(VteTerminal *term, gint status, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	return on_app_exit(window);
+	terminate(window, status);
+	return TRUE;
 }
 
 static gboolean
 on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	GtkWindow *window = GTK_WINDOW(widget);
-	return on_app_exit(window);
+	terminate(window, 0);
+	return TRUE;
 }
 
 static gboolean
@@ -157,6 +158,17 @@ get_child_environment(GApplicationCommandLine *cmdline)
 	}
 	result[n] = NULL;
 	return result;
+}
+
+static void
+child_ready(VteTerminal *terminal, GPid pid, GError *error, gpointer user_data)
+{
+	if (!terminal) return;
+	if (pid == -1) {
+		GtkWindow *window = user_data;
+		terminate(window, error->code);
+		g_error_free(error);
+	}
 }
 
 static void
@@ -290,7 +302,9 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    0,			/* spawn flags */
 	    NULL, NULL, NULL,	/* child setup */
 	    -1,			/* timeout */
-	    NULL, NULL, NULL);
+	    NULL,		/* cancellable */
+	    child_ready,	/* callback */
+	    window);		/* user_data */
 	/* Safe to free as those variables are g_strdupv() early in
 	 * async_spawn_data_new() */
 	g_strfreev(env);
