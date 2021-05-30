@@ -262,14 +262,14 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 		    CLR_GDK(0xde7fa8),
 		    CLR_GDK(0x5e7175),
 		    CLR_GDK(0xbebebe),
-		    CLR_GDK(0x666666),
+		    CLR_GDK(0x555555),
 		    CLR_GDK(0xef8171),
 		    CLR_GDK(0xcfefb3),
 		    CLR_GDK(0xfff796),
 		    CLR_GDK(0x74b8ef),
-		    CLR_GDK(0xddaaff),
+		    CLR_GDK(0xe393b6),
 		    CLR_GDK(0xa3babf),
-		    CLR_GDK(0xffffff),
+		    CLR_GDK(0xdddddd),
  	    }, 16);
 	vte_terminal_set_bold_is_bright(VTE_TERMINAL(terminal),
 	    TRUE);
