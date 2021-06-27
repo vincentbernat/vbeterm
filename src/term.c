@@ -316,9 +316,19 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 int
 main(int argc, char *argv[])
 {
+	gtk_init(&argc, &argv);
+
+	/* Get per-display application ID */
+	GdkDisplay *display = gdk_display_get_default();
+	gchar *display_name = g_strdup(gdk_display_get_name(display));
+	gchar *name = g_strdup_printf("ch.bernat.Terminal2-%s",
+	    g_strcanon(display_name, G_CSET_a_2_z G_CSET_DIGITS "-", '-'));
+	g_free(display_name);
+
+	/* Define and run application */
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal2",
+	app = gtk_application_new(name,
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
