@@ -10,7 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install dependencies
-        run: sudo apt install build-essential libvte-2.91-dev
+        run: |
+          sudo apt -qyy update > /dev/null
+          sudo apt -qyy install build-essential libvte-2.91-dev > /dev/null
       - name: Build
         run: |
           ./autogen.sh
