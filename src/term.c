@@ -254,22 +254,22 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	    &CLR_GDK(0xffffff),
 	    &(GdkRGBA){ .alpha = TERM_OPACITY },
 	    (const GdkRGBA[]){
-		    CLR_GDK(0x21222C),
-		    CLR_GDK(0xFF5555),
-		    CLR_GDK(0x50FA7B),
-		    CLR_GDK(0xF1FA8C),
-		    CLR_GDK(0xBD93F9),
-		    CLR_GDK(0xFF79C6),
-		    CLR_GDK(0x8BE9FD),
-		    CLR_GDK(0xF8F8F2),
-		    CLR_GDK(0x6272A4),
-		    CLR_GDK(0xFF6E6E),
-		    CLR_GDK(0x69FF94),
-		    CLR_GDK(0xFFFFA5),
-		    CLR_GDK(0xD6ACFF),
-		    CLR_GDK(0xFF92DF),
-		    CLR_GDK(0xA4FFFF),
-		    CLR_GDK(0xFFFFFF),
+		    CLR_GDK(0x111111),
+		    CLR_GDK(0xd36265),
+		    CLR_GDK(0xaece91),
+		    CLR_GDK(0xe7e18c),
+		    CLR_GDK(0x5297cf),
+		    CLR_GDK(0xde7fa8),
+		    CLR_GDK(0x5e7175),
+		    CLR_GDK(0xbebebe),
+		    CLR_GDK(0x555555),
+		    CLR_GDK(0xef8171),
+		    CLR_GDK(0xcfefb3),
+		    CLR_GDK(0xfff796),
+		    CLR_GDK(0x74b8ef),
+		    CLR_GDK(0xe393b6),
+		    CLR_GDK(0xa3babf),
+		    CLR_GDK(0xdddddd),
  	    }, 16);
 	vte_terminal_set_bold_is_bright(VTE_TERMINAL(terminal),
 	    TRUE);
@@ -318,7 +318,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal3",
+	app = gtk_application_new("ch.bernat.Terminal2",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
