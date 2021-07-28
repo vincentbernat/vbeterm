@@ -26,7 +26,7 @@
 
 #define TERM_WORD_CHARS "-./?%&#_=+@~"
 #define TERM_OPACITY 0.9
-#define TERM_FONT "Iosevka Term SS14 10"
+#define TERM_FONT "Iosevka Term SS18 10"
 #define TERM_DABBREV_MIN_PREFIX 2
 
 gboolean dabbrev_expand(GtkWindow *, VteTerminal *);
