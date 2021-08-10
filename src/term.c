@@ -255,10 +255,10 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	/* Select a random tint for background */
 	const GdkRGBA background_colors[] = {
 		CLR_GDKA(0x000000, TERM_OPACITY),
-		CLR_GDKA(0x110011, TERM_OPACITY),
-		CLR_GDKA(0x110000, TERM_OPACITY),
-		CLR_GDKA(0x001100, TERM_OPACITY),
-		CLR_GDKA(0x000011, TERM_OPACITY),
+		CLR_GDKA(0x060006, TERM_OPACITY),
+		CLR_GDKA(0x060000, TERM_OPACITY),
+		CLR_GDKA(0x000600, TERM_OPACITY),
+		CLR_GDKA(0x000006, TERM_OPACITY),
 	};
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0xffffff),
