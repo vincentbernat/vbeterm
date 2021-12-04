@@ -190,6 +190,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	gtk_container_add(GTK_CONTAINER(window), terminal);
 	g_object_set_data(G_OBJECT(window), "terminal", terminal);
 	gtk_widget_set_visual(window, gdk_screen_get_rgba_visual(gtk_widget_get_screen(window)));
+	g_object_set(gtk_settings_get_default(), "gtk-xft-rgba", "none", NULL);
 
 #ifdef GDK_WINDOWING_X11
 	/* Set WMCLASS */
@@ -328,7 +329,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal4",
+	app = gtk_application_new("ch.bernat.Terminal5",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
