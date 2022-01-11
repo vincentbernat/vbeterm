@@ -24,10 +24,14 @@
 
 #include <vte/vte.h>
 
-#define TERM_WORD_CHARS "-./?%&#_=+@~"
-#define TERM_OPACITY 0.9
-#define TERM_FONT "Iosevka Term SS18 10"
+/* Non alphanumeric characters we consider part of a word. */
+#define TERM_WORD_CHARS "-./?%&#_=+@~:"
+/* Minimum prefix to try completing a word. */
 #define TERM_DABBREV_MIN_PREFIX 2
+/* Terminal opacity */
+#define TERM_OPACITY 0.9
+/* Terminal font */
+#define TERM_FONT "Iosevka Term SS18 10"
 
 gboolean dabbrev_expand(GtkWindow *, VteTerminal *);
 void dabbrev_stop(VteTerminal *);
