@@ -46,7 +46,6 @@ AX_CFLAGS_GCC_OPTION([-Wno-unused-parameter],[MORE_CFLAGS])
 AX_CFLAGS_GCC_OPTION([-Wno-missing-field-initializers],[MORE_CFLAGS])
 AX_LDFLAGS_OPTION([-Wl,-z,relro],[MORE_LDFLAGS])
 AX_LDFLAGS_OPTION([-Wl,-z,now],[MORE_LDFLAGS])
-AX_LDFLAGS_OPTION([-Wl,--push-state,--no-as-needed -lSegFault -Wl,--pop-state],[MORE_LDFLAGS])
 
 AC_CACHE_SAVE
 
