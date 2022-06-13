@@ -25,7 +25,7 @@
 #include <vte/vte.h>
 
 /* Non alphanumeric characters we consider part of a word. */
-#define TERM_WORD_CHARS "-./?%&#_=+@~:"
+#define TERM_WORD_CHARS "-./?%&_=+@~:"
 /* Minimum prefix to try completing a word. */
 #define TERM_DABBREV_MIN_PREFIX 2
 /* Terminal opacity */
