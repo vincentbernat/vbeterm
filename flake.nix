@@ -9,7 +9,7 @@
         pkgs = inputs.nixpkgs.legacyPackages."${system}";
       in
       {
-        defaultPackage = pkgs.stdenv.mkDerivation rec {
+        packages.default = pkgs.stdenv.mkDerivation rec {
           name = "vbeterm";
           src = ./.;
           nativeBuildInputs = with pkgs; [ autoreconfHook pkgconfig ];
