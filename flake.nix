@@ -12,7 +12,7 @@
         packages.default = pkgs.stdenv.mkDerivation rec {
           name = "vbeterm";
           src = ./.;
-          nativeBuildInputs = with pkgs; [ autoreconfHook pkgconfig ];
+          nativeBuildInputs = with pkgs; [ autoreconfHook pkg-config ];
           buildInputs = [ pkgs.vte ];
           postInstall = ''
             mv $out/bin/term $out/bin/${name}
