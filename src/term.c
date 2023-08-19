@@ -91,8 +91,7 @@ on_child_exit(VteTerminal *term, gint status, gpointer user_data)
 static gboolean
 on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
-	GtkWindow *window = GTK_WINDOW(widget);
-	terminate(window, 0);
+	/* Closing the window is not allowed. */
 	return TRUE;
 }
 
