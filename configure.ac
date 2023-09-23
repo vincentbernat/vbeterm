@@ -1,11 +1,9 @@
 #                                               -*- Autoconf -*-
-AC_PREREQ([2.64])
+AC_PREREQ([2.71])
 
-AC_INIT([vbeterm],
-        [m4_esyscmd_s([./get-version])],
-        [bernat@luffy.cx])
+AC_INIT([vbeterm],[m4_esyscmd_s([./get-version])],[bernat@luffy.cx])
 AC_CONFIG_SRCDIR([src/term.c])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror tar-ustar])
@@ -22,10 +20,10 @@ LT_INIT
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_CC_C99
+AC_REQUIRE(AC_PROG_CC)
 AC_PROG_CXX
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_LN_S
 AC_PROG_EGREP
 
