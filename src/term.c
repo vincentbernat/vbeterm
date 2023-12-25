@@ -96,21 +96,20 @@ on_window_close(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 }
 
 static gboolean
-on_bell(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+on_window_focus(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	if (!gtk_widget_has_focus(widget))
-	{
-		gtk_window_set_urgency_hint(window, TRUE);
-	}
+	gtk_window_set_urgency_hint(window, FALSE);
 	return FALSE;
 }
 
 static gboolean
-on_focus(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+on_bell(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	gtk_window_set_urgency_hint(window, FALSE);
+	if (!gtk_window_is_active(window)) {
+		gtk_window_set_urgency_hint(window, TRUE);
+	}
 	return FALSE;
 }
 
@@ -247,8 +246,8 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", G_CALLBACK(on_window_close), NULL);
+	g_signal_connect(window, "enter-notify-event", G_CALLBACK(on_window_focus), GTK_WINDOW(window));
 	g_signal_connect(terminal, "bell", G_CALLBACK(on_bell), GTK_WINDOW(window));
-	g_signal_connect(terminal, "focus", G_CALLBACK(on_focus), GTK_WINDOW(window));
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
@@ -349,7 +348,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal6",
+	app = gtk_application_new("ch.bernat.Terminal7",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
