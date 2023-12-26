@@ -246,7 +246,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 
 	/* Connect some signals */
 	g_signal_connect(window, "delete-event", G_CALLBACK(on_window_close), NULL);
-	g_signal_connect(window, "enter-notify-event", G_CALLBACK(on_window_focus), GTK_WINDOW(window));
+	g_signal_connect(window, "focus-in-event", G_CALLBACK(on_window_focus), GTK_WINDOW(window));
 	g_signal_connect(terminal, "bell", G_CALLBACK(on_bell), GTK_WINDOW(window));
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
