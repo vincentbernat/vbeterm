@@ -54,7 +54,7 @@ is_word_char(const char c)
 static char *
 append_corpus(VteTerminal *terminal, char *corpus)
 {
-	char *text = vte_terminal_get_text(terminal, NULL, NULL, NULL);
+	char *text = vte_terminal_get_text_format(terminal, VTE_FORMAT_TEXT);
 	if (corpus == NULL) return text;
 
 	char *new_corpus = g_strdup_printf("%s %s", corpus, text);
@@ -201,10 +201,11 @@ dabbrev_expand(GtkWindow *window, VteTerminal *terminal)
 		for (start_column = end_column;
 		     start_column >= 0;
 		     start_column--) {
-			char *newprefix = vte_terminal_get_text_range(terminal,
+			char *newprefix = vte_terminal_get_text_range_format(terminal,
+			    VTE_FORMAT_TEXT,
 			    row, start_column,
 			    row, end_column,
-			    NULL, NULL, NULL);
+			    NULL);
 			if (!is_word_char(newprefix[0])) {
 				free(newprefix);
 				break;
