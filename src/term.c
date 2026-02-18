@@ -60,13 +60,13 @@ on_char_size_changed(GtkWidget *terminal, guint width, guint height, gpointer us
 	return TRUE;
 }
 
-static gboolean
-on_title_changed(GtkWidget *terminal, gpointer user_data)
+static void
+on_title_changed(VteTerminal *terminal, const char *prop, gpointer user_data)
 {
 	GtkWindow *window = user_data;
-	gtk_window_set_title(window,
-	    vte_terminal_get_window_title(VTE_TERMINAL(terminal))?:PACKAGE_NAME);
-	return TRUE;
+	const char *title = vte_terminal_get_termprop_string_by_id(
+	    terminal, VTE_PROPERTY_ID_XTERM_TITLE, NULL);
+	gtk_window_set_title(window, title ?: PACKAGE_NAME);
 }
 
 static void
@@ -249,7 +249,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	g_signal_connect(window, "focus-in-event", G_CALLBACK(on_window_focus), GTK_WINDOW(window));
 	g_signal_connect(terminal, "bell", G_CALLBACK(on_bell), GTK_WINDOW(window));
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
-	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), GTK_WINDOW(window));
+	g_signal_connect(terminal, "termprop-changed::" VTE_TERMPROP_XTERM_TITLE, G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 
