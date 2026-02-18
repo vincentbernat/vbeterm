@@ -272,17 +272,9 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 #define CLR_GDKA(x, a) (const GdkRGBA){ .red = CLR_16(CLR_R(x)), .green = CLR_16(CLR_G(x)), .blue = CLR_16(CLR_B(x)), .alpha = a }
 #define CLR_GDK(x)     CLR_GDKA(x, 0)
 
-	/* Select a random tint for background */
-	const GdkRGBA background_colors[] = {
-		CLR_GDKA(0x000000, TERM_OPACITY),
-		CLR_GDKA(0x060006, TERM_OPACITY),
-		CLR_GDKA(0x060000, TERM_OPACITY),
-		CLR_GDKA(0x000600, TERM_OPACITY),
-		CLR_GDKA(0x000006, TERM_OPACITY),
-	};
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
 	    &CLR_GDK(0xffffff),
-	    &background_colors[g_random_int_range(0, sizeof(background_colors)/sizeof(GdkRGBA) - 1)],
+		&CLR_GDKA(0x0c0000, TERM_OPACITY),
 	    (const GdkRGBA[]){
 		    CLR_GDK(0x111111),
 		    CLR_GDK(0xd36265),
