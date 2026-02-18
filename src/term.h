@@ -35,5 +35,6 @@
 
 gboolean dabbrev_expand(GtkWindow *, VteTerminal *);
 void dabbrev_stop(VteTerminal *);
+void generate_palette(GdkRGBA *, const GdkRGBA *, const GdkRGBA *);
 
 #endif

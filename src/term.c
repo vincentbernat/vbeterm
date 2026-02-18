@@ -272,27 +272,30 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 #define CLR_GDKA(x, a) (const GdkRGBA){ .red = CLR_16(CLR_R(x)), .green = CLR_16(CLR_G(x)), .blue = CLR_16(CLR_B(x)), .alpha = a }
 #define CLR_GDK(x)     CLR_GDKA(x, 0)
 
+	GdkRGBA fg = CLR_GDK(0xffffff);
+	GdkRGBA bg = CLR_GDKA(0x0c0000, TERM_OPACITY);
+	GdkRGBA palette[256] = {
+		CLR_GDK(0x111111),
+		CLR_GDK(0xd36265),
+		CLR_GDK(0xaece91),
+		CLR_GDK(0xe7e18c),
+		CLR_GDK(0x5297cf),
+		CLR_GDK(0xde7fa8),
+		CLR_GDK(0x5e7175),
+		CLR_GDK(0xbebebe),
+		CLR_GDK(0x555555),
+		CLR_GDK(0xef8171),
+		CLR_GDK(0xcfefb3),
+		CLR_GDK(0xfff796),
+		CLR_GDK(0x74b8ef),
+		CLR_GDK(0xe393b6),
+		CLR_GDK(0xa3babf),
+		CLR_GDK(0xdddddd),
+		/* 240 elements remaining */
+	};
+	generate_palette(palette, &bg, &fg);
 	vte_terminal_set_colors(VTE_TERMINAL(terminal),
-	    &CLR_GDK(0xffffff),
-		&CLR_GDKA(0x0c0000, TERM_OPACITY),
-	    (const GdkRGBA[]){
-		    CLR_GDK(0x111111),
-		    CLR_GDK(0xd36265),
-		    CLR_GDK(0xaece91),
-		    CLR_GDK(0xe7e18c),
-		    CLR_GDK(0x5297cf),
-		    CLR_GDK(0xde7fa8),
-		    CLR_GDK(0x5e7175),
-		    CLR_GDK(0xbebebe),
-		    CLR_GDK(0x555555),
-		    CLR_GDK(0xef8171),
-		    CLR_GDK(0xcfefb3),
-		    CLR_GDK(0xfff796),
-		    CLR_GDK(0x74b8ef),
-		    CLR_GDK(0xe393b6),
-		    CLR_GDK(0xa3babf),
-		    CLR_GDK(0xdddddd),
- 	    }, 16);
+	    &fg, &bg, palette, 256);
 	vte_terminal_set_bold_is_bright(VTE_TERMINAL(terminal),
 	    TRUE);
 	vte_terminal_set_color_cursor(VTE_TERMINAL(terminal),
