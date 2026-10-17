@@ -158,6 +158,35 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 	return FALSE;
 }
 
+static void
+open_url(const char *url)
+{
+	GError *error = NULL;
+	if (!g_str_has_prefix(url, "http://") && !g_str_has_prefix(url, "https://"))
+		return;
+	if (!g_spawn_async(NULL, (gchar *[]){"xdg-open", (gchar *)url, NULL},
+		NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error)) {
+		g_warning("cannot open %s: %s", url, error->message);
+		g_error_free(error);
+	}
+}
+
+static gboolean
+on_button_press(GtkWidget *terminal, GdkEventButton *event, gpointer user_data)
+{
+	if (event->type != GDK_BUTTON_PRESS || event->button != 1 ||
+	    (event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_MOD1_MASK)) != GDK_CONTROL_MASK)
+		return FALSE;
+
+	char *url = vte_terminal_hyperlink_check_event(VTE_TERMINAL(terminal),
+	    (GdkEvent *)event);
+	if (url == NULL)
+		return FALSE;
+	open_url(url);
+	g_free(url);
+	return TRUE;
+}
+
 static gchar**
 get_child_environment(GApplicationCommandLine *cmdline)
 {
@@ -251,6 +280,7 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	g_signal_connect(terminal, "child-exited", G_CALLBACK(on_child_exit), GTK_WINDOW(window));
 	g_signal_connect(terminal, "termprop-changed::" VTE_TERMPROP_XTERM_TITLE, G_CALLBACK(on_title_changed), GTK_WINDOW(window));
 	g_signal_connect(terminal, "key-press-event", G_CALLBACK(on_key_press), GTK_WINDOW(window));
+	g_signal_connect(terminal, "button-press-event", G_CALLBACK(on_button_press), NULL);
 	g_signal_connect(terminal, "char-size-changed", G_CALLBACK(on_char_size_changed), NULL);
 
 	/* Configure terminal */
@@ -263,6 +293,8 @@ command_line(GApplication *app, GApplicationCommandLine *cmdline, gpointer user_
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(terminal),
 	    TRUE);
 	vte_terminal_set_mouse_autohide(VTE_TERMINAL(terminal),
+	    TRUE);
+	vte_terminal_set_allow_hyperlink(VTE_TERMINAL(terminal),
 	    TRUE);
 
 #define CLR_R(x)       (((x) & 0xff0000) >> 16)
@@ -343,7 +375,7 @@ main(int argc, char *argv[])
 {
 	GtkApplication *app;
 	gint status;
-	app = gtk_application_new("ch.bernat.Terminal8",
+	app = gtk_application_new("ch.bernat.Terminal9",
 	    G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "command-line", G_CALLBACK(command_line), NULL);
 	g_application_add_main_option_entries(G_APPLICATION(app),
