@@ -1,0 +1,22 @@
+--- a/src/vte.cc
++++ b/src/vte.cc
+@@ -9047,11 +9047,16 @@
+                                                     VTE_LINE_WIDTH,
+                                                     &fg);
+                         } else if (hyperlink) {
+-                                for (double j = 1.0 / 6.0; j < columns; j += 0.5) {
++                                /* Same integer spacing everywhere, so dots are evenly spaced */
++                                int const dot = MAX(column_width / 6, 1);
++                                int const pitch = MAX(column_width / 2, dot + 1);
++                                for (int x = xl - xl % pitch + pitch / 3; x < xr; x += pitch) {
++                                        if (x < xl)
++                                                continue;
+                                         m_draw.fill_rectangle(
+-                                                                 xl + j * column_width,
++                                                                 x,
+                                                                  y + m_regex_underline_position,
+-                                                                 MAX(column_width / 6.0, 1.0),
++                                                                 MIN(dot, xr - x),
+                                                                  m_regex_underline_thickness,
+                                                                  &fg);
+                                 }

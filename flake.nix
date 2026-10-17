@@ -9,13 +9,16 @@
         pkgs = import inputs.nixpkgs {
           inherit system;
         };
+        vte = pkgs.vte.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [ ./nix/vte-hyperlink-underline.patch ];
+        });
       in
       {
         packages.default = pkgs.stdenv.mkDerivation rec {
           name = "vbeterm";
           src = ./.;
           nativeBuildInputs = with pkgs; [ autoreconfHook pkg-config ];
-          buildInputs = [ pkgs.vte ];
+          buildInputs = [ vte ];
           postInstall = ''
             mv $out/bin/term $out/bin/${name}
           '';
