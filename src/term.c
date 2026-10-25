@@ -167,7 +167,9 @@ url_opener(GUri *uri)
 		return (host != NULL && *host != '\0') ? "xdg-open" : NULL;
 	if (!g_strcmp0(scheme, "file"))
 		/* Only local files */
-		return (host == NULL || *host == '\0') ?
+		return (host == NULL || *host == '\0' ||
+		    !g_ascii_strcasecmp(host, "localhost") ||
+		    !g_ascii_strcasecmp(host, g_get_host_name())) ?
 		    "xdg-app-chooser" : NULL;
 	return NULL;
 }
