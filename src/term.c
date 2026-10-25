@@ -158,20 +158,12 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 	return FALSE;
 }
 
-static const char *
-url_opener(GUri *uri)
+static gboolean
+is_local_host(const char *host)
 {
-	const char *scheme = g_uri_get_scheme(uri);
-	const char *host = g_uri_get_host(uri);
-	if (!g_strcmp0(scheme, "http") || !g_strcmp0(scheme, "https"))
-		return (host != NULL && *host != '\0') ? "xdg-open" : NULL;
-	if (!g_strcmp0(scheme, "file"))
-		/* Only local files */
-		return (host == NULL || *host == '\0' ||
-		    !g_ascii_strcasecmp(host, "localhost") ||
-		    !g_ascii_strcasecmp(host, g_get_host_name())) ?
-		    "xdg-app-chooser" : NULL;
-	return NULL;
+	return host == NULL || *host == '\0' ||
+	    !g_ascii_strcasecmp(host, "localhost") ||
+	    !g_ascii_strcasecmp(host, g_get_host_name());
 }
 
 static void
@@ -184,20 +176,34 @@ open_url(const char *url)
 		g_error_free(error);
 		return;
 	}
-	const char *opener = url_opener(uri);
-	g_uri_unref(uri);
-	if (opener == NULL) {
-		g_warning("URL not allowed: %s", url);
-		return;
-	}
 
 	/* Keep only unreserved and reserved characters from RFC 3986 */
 	gchar *escaped = g_uri_escape_string(url, "!#$%&'()*+,/:;=?@[]", FALSE);
-	if (!g_spawn_async(NULL, (gchar *[]){(gchar *)opener, escaped, NULL},
-		NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error)) {
+	const char *scheme = g_uri_get_scheme(uri);
+	const char *host = g_uri_get_host(uri);
+	gchar *argv[] = { NULL, NULL, NULL };
+	if ((!g_strcmp0(scheme, "http") || !g_strcmp0(scheme, "https")) &&
+	    host != NULL && *host != '\0') {
+		argv[0] = "xdg-open";
+		argv[1] = g_strdup(escaped);
+	} else if (!g_strcmp0(scheme, "file") && is_local_host(host)) {
+		argv[0] = "xdg-app-chooser";
+		argv[1] = g_filename_from_uri(escaped, NULL, &error);
+		if (argv[1] == NULL) {
+			g_warning("invalid file URL %s: %s", escaped, error->message);
+			g_clear_error(&error);
+		}
+	} else
+		g_warning("URL not allowed: %s", url);
+	g_uri_unref(uri);
+
+	if (argv[1] != NULL &&
+	    !g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+		NULL, NULL, NULL, &error)) {
 		g_warning("cannot open %s: %s", escaped, error->message);
 		g_error_free(error);
 	}
+	g_free(argv[1]);
 	g_free(escaped);
 }
 
