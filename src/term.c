@@ -158,17 +158,45 @@ on_key_press(GtkWidget *terminal, GdkEventKey *event, gpointer user_data)
 	return FALSE;
 }
 
+static const char *
+url_opener(GUri *uri)
+{
+	const char *scheme = g_uri_get_scheme(uri);
+	const char *host = g_uri_get_host(uri);
+	if (!g_strcmp0(scheme, "http") || !g_strcmp0(scheme, "https"))
+		return (host != NULL && *host != '\0') ? "xdg-open" : NULL;
+	if (!g_strcmp0(scheme, "file"))
+		/* Only local files */
+		return (host == NULL || *host == '\0') ?
+		    "xdg-app-chooser" : NULL;
+	return NULL;
+}
+
 static void
 open_url(const char *url)
 {
 	GError *error = NULL;
-	if (!g_str_has_prefix(url, "http://") && !g_str_has_prefix(url, "https://"))
+	GUri *uri = g_uri_parse(url, G_URI_FLAGS_ENCODED, &error);
+	if (uri == NULL) {
+		g_warning("invalid URL %s: %s", url, error->message);
+		g_error_free(error);
 		return;
-	if (!g_spawn_async(NULL, (gchar *[]){"xdg-open", (gchar *)url, NULL},
+	}
+	const char *opener = url_opener(uri);
+	g_uri_unref(uri);
+	if (opener == NULL) {
+		g_warning("URL not allowed: %s", url);
+		return;
+	}
+
+	/* Keep only unreserved and reserved characters from RFC 3986 */
+	gchar *escaped = g_uri_escape_string(url, "!#$%&'()*+,/:;=?@[]", FALSE);
+	if (!g_spawn_async(NULL, (gchar *[]){(gchar *)opener, escaped, NULL},
 		NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error)) {
-		g_warning("cannot open %s: %s", url, error->message);
+		g_warning("cannot open %s: %s", escaped, error->message);
 		g_error_free(error);
 	}
+	g_free(escaped);
 }
 
 static gboolean
